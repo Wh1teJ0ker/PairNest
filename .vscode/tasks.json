@@ -1,0 +1,90 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Android: List AVDs",
+      "type": "shell",
+      "command": "avdmanager list avd",
+      "options": {
+        "env": {
+          "ANDROID_HOME": "/Users/joker/Library/Android/sdk",
+          "ANDROID_SDK_ROOT": "/Users/joker/Library/Android/sdk",
+          "JAVA_HOME": "/Applications/ServBay/package/openjdk/current.sdk/Contents/Home",
+          "PATH": "/Users/joker/Library/Android/sdk/platform-tools:/Users/joker/Library/Android/sdk/emulator:/Users/joker/Library/Android/sdk/cmdline-tools/latest/bin:${env:PATH}"
+        }
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Android: Start Emulator (Pixel_9_API_35)",
+      "type": "shell",
+      "command": "emulator -avd Pixel_9_API_35",
+      "options": {
+        "env": {
+          "ANDROID_HOME": "/Users/joker/Library/Android/sdk",
+          "ANDROID_SDK_ROOT": "/Users/joker/Library/Android/sdk",
+          "JAVA_HOME": "/Applications/ServBay/package/openjdk/current.sdk/Contents/Home",
+          "PATH": "/Users/joker/Library/Android/sdk/platform-tools:/Users/joker/Library/Android/sdk/emulator:/Users/joker/Library/Android/sdk/cmdline-tools/latest/bin:${env:PATH}"
+        }
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Android: ADB Devices",
+      "type": "shell",
+      "command": "adb devices -l",
+      "options": {
+        "env": {
+          "ANDROID_HOME": "/Users/joker/Library/Android/sdk",
+          "ANDROID_SDK_ROOT": "/Users/joker/Library/Android/sdk",
+          "JAVA_HOME": "/Applications/ServBay/package/openjdk/current.sdk/Contents/Home",
+          "PATH": "/Users/joker/Library/Android/sdk/platform-tools:/Users/joker/Library/Android/sdk/emulator:/Users/joker/Library/Android/sdk/cmdline-tools/latest/bin:${env:PATH}"
+        }
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Android: ADB Logcat",
+      "type": "shell",
+      "command": "adb logcat",
+      "options": {
+        "env": {
+          "ANDROID_HOME": "/Users/joker/Library/Android/sdk",
+          "ANDROID_SDK_ROOT": "/Users/joker/Library/Android/sdk",
+          "JAVA_HOME": "/Applications/ServBay/package/openjdk/current.sdk/Contents/Home",
+          "PATH": "/Users/joker/Library/Android/sdk/platform-tools:/Users/joker/Library/Android/sdk/emulator:/Users/joker/Library/Android/sdk/cmdline-tools/latest/bin:${env:PATH}"
+        }
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Android: Gradle Build Debug",
+      "type": "shell",
+      "command": "./gradlew assembleDebug",
+      "options": {
+        "env": {
+          "ANDROID_HOME": "/Users/joker/Library/Android/sdk",
+          "ANDROID_SDK_ROOT": "/Users/joker/Library/Android/sdk",
+          "JAVA_HOME": "/Applications/ServBay/package/openjdk/current.sdk/Contents/Home",
+          "PATH": "/Users/joker/Library/Android/sdk/platform-tools:/Users/joker/Library/Android/sdk/emulator:/Users/joker/Library/Android/sdk/cmdline-tools/latest/bin:${env:PATH}"
+        }
+      },
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "Android: Gradle Install Debug",
+      "type": "shell",
+      "command": "./gradlew installDebug",
+      "options": {
+        "env": {
+          "ANDROID_HOME": "/Users/joker/Library/Android/sdk",
+          "ANDROID_SDK_ROOT": "/Users/joker/Library/Android/sdk",
+          "JAVA_HOME": "/Applications/ServBay/package/openjdk/current.sdk/Contents/Home",
+          "PATH": "/Users/joker/Library/Android/sdk/platform-tools:/Users/joker/Library/Android/sdk/emulator:/Users/joker/Library/Android/sdk/cmdline-tools/latest/bin:${env:PATH}"
+        }
+      },
+      "problemMatcher": []
+    }
+  ]
+}
