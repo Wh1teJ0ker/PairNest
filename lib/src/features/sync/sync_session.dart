@@ -37,6 +37,8 @@ class SyncSession {
     });
   }
 
+  bool isMatchingPair(String? pairId) => pairId == profile.pairId;
+
   Future<void> handleSyncEvents(List<dynamic> rawEvents) async {
     final events = repository.deserializeEvents(rawEvents);
     await repository.mergeRemoteEvents(events);
@@ -84,8 +86,13 @@ class SyncSession {
     final events = repository.deserializeEvents(rawEvents);
     var inserted = 0;
     var duplicate = 0;
+    var pairMismatch = 0;
 
     for (final event in events) {
+      if (!isMatchingPair(event.pairId)) {
+        pairMismatch += 1;
+        continue;
+      }
       final exists = await repository.hasEvent(event.eventId);
       if (exists) {
         duplicate += 1;
@@ -99,6 +106,7 @@ class SyncSession {
     return SyncMergeReport(
       insertedEvents: inserted,
       duplicateEvents: duplicate,
+      filteredPairMismatchEvents: pairMismatch,
       crossDeviceNoteDays: crossDays,
     );
   }

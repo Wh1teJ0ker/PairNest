@@ -182,7 +182,28 @@ void main() {
 
       expect(report.insertedEvents, 1);
       expect(report.duplicateEvents, 1);
+      expect(report.filteredPairMismatchEvents, 0);
       expect(report.crossDeviceNoteDays, 1);
+    });
+
+    test('mergeWithReport filters events from other pair ids', () async {
+      final repo = InMemorySyncRepository([]);
+      final session = SyncSession(repository: repo, profile: profile);
+      final report = await session.mergeWithReport([
+        {
+          'eventId': 'e1',
+          'pairId': 'pair-2',
+          'deviceId': 'device-z',
+          'type': 'ADD_NOTE',
+          'payload': {'text': 'intrusive'},
+          'createdAt': DateTime(2026, 5, 26, 10).toIso8601String(),
+        },
+      ]);
+
+      expect(report.insertedEvents, 0);
+      expect(report.duplicateEvents, 0);
+      expect(report.filteredPairMismatchEvents, 1);
+      expect(repo.events, isEmpty);
     });
 
     test(

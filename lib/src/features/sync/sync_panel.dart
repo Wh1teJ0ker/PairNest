@@ -476,6 +476,16 @@ class _SyncPanelState extends ConsumerState<SyncPanel> {
       final req = kind == 'sync_request_raw'
           ? jsonDecode(message['raw'] as String) as Map<String, dynamic>
           : message;
+      final pairId = req['pairId'] as String?;
+      if (!session.isMatchingPair(pairId)) {
+        if (!mounted) {
+          return;
+        }
+        setState(() {
+          _status = '已忽略不同情侣空间的同步请求';
+        });
+        return;
+      }
       final known = (req['knownEventIds'] as List<dynamic>? ?? <dynamic>[])
           .map((e) => e.toString())
           .toList();
@@ -508,13 +518,26 @@ class _SyncPanelState extends ConsumerState<SyncPanel> {
       final body = kind == 'sync_events_raw'
           ? jsonDecode(message['raw'] as String) as Map<String, dynamic>
           : message;
+      final pairId = body['pairId'] as String?;
+      if (!session.isMatchingPair(pairId)) {
+        if (!mounted) {
+          return;
+        }
+        setState(() {
+          _status = '已忽略不同情侣空间的同步数据';
+        });
+        return;
+      }
       final events = body['events'] as List<dynamic>? ?? <dynamic>[];
       final report = await session.mergeWithReport(events);
       if (!mounted) {
         return;
       }
       setState(() {
-        _status = '接收并合并 ${events.length} 条事件';
+        final mismatch = report.filteredPairMismatchEvents;
+        _status = mismatch > 0
+            ? '接收 ${events.length} 条，已合并并过滤跨空间事件 $mismatch 条'
+            : '接收并合并 ${events.length} 条事件';
         _lastSyncAt = DateTime.now();
         _lastMergedEvents += report.insertedEvents;
         _lastDuplicateEvents += report.duplicateEvents;
