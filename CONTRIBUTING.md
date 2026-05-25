@@ -30,3 +30,16 @@ GitHub Actions 工作流文件：
 - `.github/workflows/flutter_quality.yml`
 
 在 `push(main/master)` 和 `pull_request` 上执行格式检查、静态分析、测试。
+
+## 发布前检查
+
+```bash
+./scripts/release_check.sh
+```
+
+该脚本会串行执行：
+
+1. `./scripts/audit.sh`
+2. `./scripts/mvp_self_check.sh`
+3. 关键文档存在性检查
+4. `pubspec.yaml` 版本号检查

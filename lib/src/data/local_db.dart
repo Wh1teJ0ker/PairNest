@@ -1,3 +1,8 @@
+import 'dart:convert';
+import 'dart:io';
+import 'dart:math';
+
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
@@ -6,6 +11,10 @@ class LocalDb {
   LocalDb._();
 
   static final LocalDb instance = LocalDb._();
+  static const _dbKeyStorage = 'pairnest_db_key_v1';
+  static const _legacyDbPassword = 'pairnest-local-encrypted-db';
+
+  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
   Database? _db;
 
   Future<Database> get db async {
@@ -15,10 +24,55 @@ class LocalDb {
 
     final dir = await getApplicationDocumentsDirectory();
     final path = p.join(dir.path, 'pairnest.db');
-    _db = await openDatabase(
+    _db = await _openWithManagedPassword(path);
+    return _db!;
+  }
+
+  Future<Database> _openWithManagedPassword(String path) async {
+    final stored = await _secureStorage.read(key: _dbKeyStorage);
+    if (stored != null && stored.isNotEmpty) {
+      return _openDatabase(path: path, password: stored);
+    }
+
+    final generated = _generateDbPassword();
+    final dbFile = File(path);
+    final exists = await dbFile.exists();
+
+    if (!exists) {
+      final database = await _openDatabase(path: path, password: generated);
+      await _secureStorage.write(key: _dbKeyStorage, value: generated);
+      return database;
+    }
+
+    await _migrateFromLegacyPassword(path: path, newPassword: generated);
+    await _secureStorage.write(key: _dbKeyStorage, value: generated);
+    return _openDatabase(path: path, password: generated);
+  }
+
+  Future<void> _migrateFromLegacyPassword({
+    required String path,
+    required String newPassword,
+  }) async {
+    Database? legacyDb;
+    try {
+      legacyDb = await _openDatabase(path: path, password: _legacyDbPassword);
+      final escaped = _escapeSqlLiteral(newPassword);
+      await legacyDb.execute("PRAGMA rekey = '$escaped';");
+    } catch (e) {
+      throw StateError('数据库密钥迁移失败: $e');
+    } finally {
+      await legacyDb?.close();
+    }
+  }
+
+  Future<Database> _openDatabase({
+    required String path,
+    required String password,
+  }) {
+    return openDatabase(
       path,
       version: 1,
-      password: 'pairnest-local-encrypted-db',
+      password: password,
       onCreate: (database, _) async {
         await database.execute('''
           CREATE TABLE events (
@@ -44,6 +98,15 @@ class LocalDb {
         );
       },
     );
-    return _db!;
+  }
+
+  String _generateDbPassword() {
+    final random = Random.secure();
+    final bytes = List<int>.generate(32, (_) => random.nextInt(256));
+    return base64UrlEncode(bytes);
+  }
+
+  String _escapeSqlLiteral(String value) {
+    return value.replaceAll("'", "''");
   }
 }

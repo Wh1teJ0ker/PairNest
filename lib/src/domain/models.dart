@@ -6,6 +6,7 @@ enum EventType {
   addImage,
   addMood,
   addScore,
+  completeTask,
   addAnniversary,
   dailyCheckin,
 }
@@ -23,6 +24,8 @@ extension EventTypeValue on EventType {
         return 'ADD_MOOD';
       case EventType.addScore:
         return 'ADD_SCORE';
+      case EventType.completeTask:
+        return 'COMPLETE_TASK';
       case EventType.addAnniversary:
         return 'ADD_ANNIVERSARY';
       case EventType.dailyCheckin:
@@ -100,6 +103,26 @@ class CoupleProfile {
   final DateTime startedAt;
 
   int get loveDays => DateTime.now().difference(startedAt).inDays + 1;
+
+  Map<String, dynamic> toJson() {
+    return {
+      'pairId': pairId,
+      'myDeviceId': myDeviceId,
+      'meName': meName,
+      'partnerName': partnerName,
+      'startedAt': startedAt.toIso8601String(),
+    };
+  }
+
+  factory CoupleProfile.fromJson(Map<String, dynamic> map) {
+    return CoupleProfile(
+      pairId: map['pairId'] as String,
+      myDeviceId: map['myDeviceId'] as String,
+      meName: map['meName'] as String,
+      partnerName: map['partnerName'] as String,
+      startedAt: DateTime.parse(map['startedAt'] as String),
+    );
+  }
 }
 
 class TimelineEntry {
@@ -150,12 +173,14 @@ class AnniversaryItem {
     required this.title,
     required this.date,
     required this.kind,
+    this.remindDays = 7,
   });
 
   final String id;
   final String title;
   final DateTime date;
   final String kind;
+  final int remindDays;
 
   int get daysLeft {
     final now = DateTime.now();
@@ -165,4 +190,18 @@ class AnniversaryItem {
         : thisYear;
     return target.difference(DateTime(now.year, now.month, now.day)).inDays;
   }
+
+  bool get shouldRemind => daysLeft <= remindDays;
+}
+
+class TodayStatus {
+  const TodayStatus({
+    required this.checkinDone,
+    required this.noteCount,
+    required this.latestMood,
+  });
+
+  final bool checkinDone;
+  final int noteCount;
+  final String? latestMood;
 }

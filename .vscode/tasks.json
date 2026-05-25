@@ -85,6 +85,38 @@
         }
       },
       "problemMatcher": []
+    },
+    {
+      "label": "Flutter: Pub Get",
+      "type": "shell",
+      "command": "flutter pub get",
+      "problemMatcher": []
+    },
+    {
+      "label": "Flutter: Analyze",
+      "type": "shell",
+      "command": "flutter analyze",
+      "problemMatcher": []
+    },
+    {
+      "label": "Flutter: Test",
+      "type": "shell",
+      "command": "flutter test",
+      "problemMatcher": []
+    },
+    {
+      "label": "Audit: Full",
+      "type": "shell",
+      "command": "./scripts/audit.sh",
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "Release: Check",
+      "type": "shell",
+      "command": "./scripts/release_check.sh",
+      "group": "test",
+      "problemMatcher": []
     }
   ]
 }

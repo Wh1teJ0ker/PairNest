@@ -9,6 +9,15 @@
   "java.jdt.ls.java.home": "/Applications/ServBay/package/openjdk/current.sdk/Contents/Home",
   "java.import.gradle.java.home": "/Applications/ServBay/package/openjdk/current.sdk/Contents/Home",
   "gradle.java.home": "/Applications/ServBay/package/openjdk/current.sdk/Contents/Home",
+  "dart.flutterSdkPath": "/opt/homebrew/share/flutter",
+  "editor.formatOnSave": true,
+  "[dart]": {
+    "editor.defaultFormatter": "Dart-Code.dart-code"
+  },
+  "search.exclude": {
+    "**/.dart_tool": true,
+    "**/build": true
+  },
   "terminal.integrated.env.osx": {
     "ANDROID_HOME": "/Users/joker/Library/Android/sdk",
     "ANDROID_SDK_ROOT": "/Users/joker/Library/Android/sdk",

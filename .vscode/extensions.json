@@ -1,7 +1,12 @@
 {
   "recommendations": [
+    "dart-code.dart-code",
+    "dart-code.flutter",
     "vscjava.vscode-java-pack",
     "fwcd.kotlin",
-    "richardwillis.vscode-gradle-extension-pack"
+    "richardwillis.vscode-gradle-extension-pack",
+    "mhutchie.git-graph",
+    "eamodio.gitlens",
+    "streetsidesoftware.code-spell-checker"
   ]
 }

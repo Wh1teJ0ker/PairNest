@@ -25,7 +25,7 @@ class ProfileController extends AsyncNotifier<CoupleProfile?> {
     return ref.read(pairRepositoryProvider).readProfile();
   }
 
-  Future<void> bind({
+  Future<CoupleProfile> bind({
     required String meName,
     required String partnerName,
     required DateTime startedAt,
@@ -39,6 +39,26 @@ class ProfileController extends AsyncNotifier<CoupleProfile?> {
           startedAt: startedAt,
         );
     state = AsyncData(profile);
+    return profile;
+  }
+
+  Future<CoupleProfile> joinByInvite({
+    required String myName,
+    required String pairId,
+    required String partnerName,
+    required DateTime startedAt,
+  }) async {
+    state = const AsyncLoading();
+    final profile = await ref
+        .read(pairRepositoryProvider)
+        .joinCoupleByInvite(
+          meName: myName,
+          pairId: pairId,
+          partnerName: partnerName,
+          startedAt: startedAt,
+        );
+    state = AsyncData(profile);
+    return profile;
   }
 }
 
@@ -64,4 +84,16 @@ final anniversaryProvider = FutureProvider<List<AnniversaryItem>>((ref) async {
     return <AnniversaryItem>[];
   }
   return ref.read(pairRepositoryProvider).anniversaries(profile);
+});
+
+final todayStatusProvider = FutureProvider<TodayStatus>((ref) async {
+  final profile = await ref.watch(profileProvider.future);
+  if (profile == null) {
+    return const TodayStatus(
+      checkinDone: false,
+      noteCount: 0,
+      latestMood: null,
+    );
+  }
+  return ref.read(pairRepositoryProvider).todayStatus(profile);
 });
