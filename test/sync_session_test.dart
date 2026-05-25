@@ -238,6 +238,7 @@ void main() {
         expect(files.length, 1);
         expect(files.first.imageEventId, 'img-1');
         expect(files.first.filename, 'a.jpg');
+        expect(files.first.pairId, 'pair-1');
       },
     );
   });

@@ -70,6 +70,7 @@ class SyncSession {
           sourcePath: imagePath,
           filename: p.basename(imagePath),
           imageEventId: event.eventId,
+          pairId: profile.pairId,
         ),
       );
     }

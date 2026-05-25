@@ -3,11 +3,13 @@ class OutboundFileTransfer {
     required this.sourcePath,
     required this.filename,
     required this.imageEventId,
+    required this.pairId,
   });
 
   final String sourcePath;
   final String filename;
   final String imageEventId;
+  final String pairId;
 }
 
 class InboundFileTransfer {

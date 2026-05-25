@@ -505,6 +505,16 @@ class _SyncPanelState extends ConsumerState<SyncPanel> {
       final payloadId = (message['payloadId'] as num?)?.toInt();
       final filename = message['filename'] as String?;
       final imageEventId = message['imageEventId'] as String?;
+      final pairId = message['pairId'] as String?;
+      if (!session.isMatchingPair(pairId)) {
+        if (!mounted) {
+          return;
+        }
+        setState(() {
+          _status = '已忽略不同情侣空间的文件同步元数据';
+        });
+        return;
+      }
       if (payloadId == null || filename == null || imageEventId == null) {
         return;
       }

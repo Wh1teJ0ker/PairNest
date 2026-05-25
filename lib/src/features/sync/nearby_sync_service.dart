@@ -149,6 +149,7 @@ class NearbySyncService {
       'payloadId': payloadId,
       'filename': transfer.filename,
       'imageEventId': transfer.imageEventId,
+      'pairId': transfer.pairId,
     });
   }
 
