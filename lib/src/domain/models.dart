@@ -49,7 +49,6 @@ class PairEvent {
     required this.type,
     required this.payload,
     required this.createdAt,
-    this.syncedAt,
   });
 
   final String eventId;
@@ -58,7 +57,6 @@ class PairEvent {
   final EventType type;
   final Map<String, dynamic> payload;
   final DateTime createdAt;
-  final DateTime? syncedAt;
 
   Map<String, dynamic> toDb() {
     return {
@@ -68,7 +66,6 @@ class PairEvent {
       'event_type': type.value,
       'payload': jsonEncode(payload),
       'created_at': createdAt.toIso8601String(),
-      'synced_at': syncedAt?.toIso8601String(),
     };
   }
 
@@ -80,9 +77,6 @@ class PairEvent {
       type: EventTypeValue.fromValue(row['event_type'] as String),
       payload: jsonDecode(row['payload'] as String) as Map<String, dynamic>,
       createdAt: DateTime.parse(row['created_at'] as String),
-      syncedAt: row['synced_at'] == null
-          ? null
-          : DateTime.parse(row['synced_at'] as String),
     );
   }
 }

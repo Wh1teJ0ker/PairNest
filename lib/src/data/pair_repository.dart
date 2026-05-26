@@ -134,30 +134,6 @@ class PairRepository implements SyncRepositoryPort {
     return rows.map(PairEvent.fromDb).toList();
   }
 
-  Future<List<PairEvent>> unsyncedEvents(String pairId) async {
-    final database = await _localDb.db;
-    final rows = await database.query(
-      'events',
-      where: 'pair_id = ? AND synced_at IS NULL',
-      whereArgs: [pairId],
-      orderBy: 'created_at ASC',
-    );
-    return rows.map(PairEvent.fromDb).toList();
-  }
-
-  Future<void> markEventsSynced(List<String> eventIds) async {
-    if (eventIds.isEmpty) {
-      return;
-    }
-    final database = await _localDb.db;
-    final syncedAt = DateTime.now().toIso8601String();
-    final placeholders = List.filled(eventIds.length, '?').join(',');
-    await database.rawUpdate(
-      'UPDATE events SET synced_at = ? WHERE event_id IN ($placeholders)',
-      [syncedAt, ...eventIds],
-    );
-  }
-
   Future<void> addTimelineEntry({
     required CoupleProfile profile,
     required String text,
