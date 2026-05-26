@@ -212,10 +212,12 @@ class TodayStatus {
   const TodayStatus({
     required this.checkinDone,
     required this.noteCount,
+    required this.completedTaskCount,
     required this.latestMood,
   });
 
   final bool checkinDone;
   final int noteCount;
+  final int completedTaskCount;
   final String? latestMood;
 }

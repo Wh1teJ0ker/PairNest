@@ -437,12 +437,20 @@ class PairRepository implements SyncRepositoryPort {
 
   Future<TodayStatus> todayStatus(CoupleProfile profile) async {
     final events = await eventsByPair(profile.pairId);
-    final now = DateTime.now();
+    return todayStatusFromEvents(events, DateTime.now());
+  }
+
+  @visibleForTesting
+  static TodayStatus todayStatusFromEvents(
+    List<PairEvent> events,
+    DateTime now,
+  ) {
     final dayStart = DateTime(now.year, now.month, now.day);
     final dayEnd = dayStart.add(const Duration(days: 1));
 
     var checkinDone = false;
     var noteCount = 0;
+    var completedTaskCount = 0;
     String? latestMood;
 
     for (final event in events) {
@@ -458,6 +466,9 @@ class PairRepository implements SyncRepositoryPort {
       if (event.type == EventType.addNote) {
         noteCount += 1;
       }
+      if (event.type == EventType.completeTask) {
+        completedTaskCount += 1;
+      }
       if (event.type == EventType.addMood && latestMood == null) {
         latestMood = event.payload['mood'] as String?;
       }
@@ -466,6 +477,7 @@ class PairRepository implements SyncRepositoryPort {
     return TodayStatus(
       checkinDone: checkinDone,
       noteCount: noteCount,
+      completedTaskCount: completedTaskCount,
       latestMood: latestMood,
     );
   }

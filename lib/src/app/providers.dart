@@ -102,6 +102,7 @@ final todayStatusProvider = FutureProvider<TodayStatus>((ref) async {
     return const TodayStatus(
       checkinDone: false,
       noteCount: 0,
+      completedTaskCount: 0,
       latestMood: null,
     );
   }

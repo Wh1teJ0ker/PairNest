@@ -129,6 +129,11 @@ class HomePage extends ConsumerWidget {
                               Icons.notes_rounded,
                             ),
                             _statusChip(
+                              '任务 ${status.completedTaskCount} 项',
+                              const Color(0xFFE9F2EB),
+                              Icons.task_alt_rounded,
+                            ),
+                            _statusChip(
                               status.latestMood == null
                                   ? '心情未记录'
                                   : '心情 ${status.latestMood}',
