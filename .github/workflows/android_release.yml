@@ -22,12 +22,15 @@ jobs:
   release-android:
     name: Build And Publish APKs
     runs-on: ubuntu-latest
+    env:
+      RELEASE_REF: ${{ github.event_name == 'workflow_dispatch' && format('refs/tags/{0}', inputs.release_tag) || github.ref }}
+      RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.ref_name }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event_name == 'workflow_dispatch' && format('refs/tags/{0}', inputs.release_tag) || github.ref }}
+          ref: ${{ env.RELEASE_REF }}
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -52,11 +55,7 @@ jobs:
           PUBSPEC_VERSION=$(grep '^version:' pubspec.yaml | awk '{print $2}')
           BUILD_NAME="${PUBSPEC_VERSION%%+*}"
           BUILD_NUMBER="${PUBSPEC_VERSION##*+}"
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            TAG_NAME="${{ inputs.release_tag }}"
-          else
-            TAG_NAME="$GITHUB_REF_NAME"
-          fi
+          TAG_NAME="$RELEASE_TAG"
           TAG_NAME="${TAG_NAME#v}"
           if [ "$BUILD_NAME" != "$TAG_NAME" ]; then
             echo "Tag $TAG_NAME does not match pubspec build name $BUILD_NAME" >&2
