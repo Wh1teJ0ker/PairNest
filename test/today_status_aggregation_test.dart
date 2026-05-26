@@ -69,4 +69,28 @@ void main() {
     expect(status.completedTaskCount, 2);
     expect(status.latestMood, '开心');
   });
+
+  test('todayStatusFromEvents includes events at day start boundary', () {
+    final now = DateTime(2026, 5, 26, 12, 0);
+    final events = <PairEvent>[
+      _event(
+        id: 'exact-start',
+        type: EventType.addNote,
+        at: DateTime(2026, 5, 26, 0, 0),
+      ),
+      _event(
+        id: 'prev-end',
+        type: EventType.addNote,
+        at: DateTime(2026, 5, 25, 23, 59, 59),
+      ),
+      _event(
+        id: 'next-start',
+        type: EventType.addNote,
+        at: DateTime(2026, 5, 27, 0, 0),
+      ),
+    ];
+
+    final status = PairRepository.todayStatusFromEvents(events, now);
+    expect(status.noteCount, 1);
+  });
 }

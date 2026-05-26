@@ -362,6 +362,11 @@ class PairRepository implements SyncRepositoryPort {
 
   Future<GrowthScore> growthScore(CoupleProfile profile) async {
     final events = await eventsByPair(profile.pairId);
+    return growthScoreFromEvents(events);
+  }
+
+  @visibleForTesting
+  static GrowthScore growthScoreFromEvents(List<PairEvent> events) {
     var score = GrowthScore.zero;
 
     for (final event in events) {
@@ -455,7 +460,8 @@ class PairRepository implements SyncRepositoryPort {
 
     for (final event in events) {
       final inToday =
-          event.createdAt.isAfter(dayStart) && event.createdAt.isBefore(dayEnd);
+          !event.createdAt.isBefore(dayStart) &&
+          event.createdAt.isBefore(dayEnd);
       if (!inToday) {
         continue;
       }
