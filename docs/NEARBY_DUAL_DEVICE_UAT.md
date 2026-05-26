@@ -119,6 +119,7 @@
 2. 修完后运行 `./scripts/check_uat_result.sh`（最终强校验）。
 3. 最后运行 `./scripts/final_acceptance_check.sh`（全量验收门禁）。
 4. 若要验证脚本本身可用性，可运行 `./scripts/test_uat_scripts.sh`（脚本自测）。
+5. `./scripts/release_check.sh` 已默认包含上述脚本自测，无需重复执行。
 
 ## 4. 故障排查
 

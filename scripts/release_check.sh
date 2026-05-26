@@ -24,4 +24,7 @@ done
 echo "[Release] 4) 版本号检查"
 rg -n "^version: 0\.1\.0\+1$" pubspec.yaml >/dev/null
 
+echo "[Release] 5) UAT 脚本自测"
+./scripts/test_uat_scripts.sh
+
 echo "[Release] 发布前检查通过"
