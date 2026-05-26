@@ -13,7 +13,9 @@ echo "[Release] 2) MVP 验收自检"
 echo "[Release] 3) 关键文档检查"
 required=(
   "README.md"
+  "README.en.md"
   "CHANGELOG.md"
+  "docs/CHANGELOG_POLICY.md"
   "docs/MVP_ACCEPTANCE_CHECKLIST.md"
   ".github/workflows/flutter_quality.yml"
 )
@@ -28,5 +30,8 @@ echo "$VERSION_LINE" | rg -q '^.+version: [0-9]+\.[0-9]+\.[0-9]+\+[0-9]+$'
 
 echo "[Release] 5) UAT 脚本自测"
 ./scripts/test_uat_scripts.sh
+
+echo "[Release] 6) 更新日志规范检查"
+./scripts/check_changelog.sh
 
 echo "[Release] 发布前检查通过"

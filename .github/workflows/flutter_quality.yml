@@ -41,5 +41,8 @@ jobs:
       - name: Unit tests
         run: flutter test
 
+      - name: Changelog policy check
+        run: ./scripts/check_changelog.sh
+
       - name: UAT script self-tests
         run: ./scripts/test_uat_scripts.sh

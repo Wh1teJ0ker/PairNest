@@ -1,5 +1,30 @@
 # Contributing
 
+## 主页与语言规范
+
+- `README.md` 是中文主主页
+- `README.en.md` 是英文版说明
+- 涉及版本、发布、基线状态时，两份 README 需要同步更新
+
+## 更新日志规范
+
+每次代码更新都必须补充详细日志，不允许省略。
+
+必读文档：
+
+- `CHANGELOG.md`
+- `docs/CHANGELOG_POLICY.md`
+
+最低要求：
+
+- 修改功能、构建、发布、同步、数据结构时必须更新 `CHANGELOG.md`
+- 日志必须说明“改了什么、为什么改、影响范围、验证方式”
+- 发布前必须执行：
+
+```bash
+./scripts/check_changelog.sh
+```
+
 ## 本地代码审计（实时）
 
 仓库已启用 `core.hooksPath=.githooks`，默认包含：
@@ -22,6 +47,7 @@
 2. `dart format --output=none --set-exit-if-changed lib test`
 3. `flutter analyze`
 4. `flutter test`
+5. `./scripts/check_changelog.sh`
 
 ## CI 审计
 
@@ -43,3 +69,4 @@ GitHub Actions 工作流文件：
 2. `./scripts/mvp_self_check.sh`
 3. 关键文档存在性检查
 4. `pubspec.yaml` 版本号检查
+5. 更新日志规范检查

@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to PairNest will be documented in this file.
+PairNest 的所有重要更新都必须记录在本文件中，详细规范见 `docs/CHANGELOG_POLICY.md`。
 
 ## [Unreleased]
 
@@ -8,6 +8,8 @@ All notable changes to PairNest will be documented in this file.
 
 - Pinned Android build inputs required for reproducible local and CI builds.
 - Added GitHub tag-based Android release workflow and documented versioning rules.
+- Standardized the repository homepage as Chinese-first with a maintained English companion README.
+- Added a mandatory changelog policy and validation flow for every code update.
 
 ## [0.1.1] - 2026-05-26
 

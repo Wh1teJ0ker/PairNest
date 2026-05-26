@@ -21,4 +21,7 @@ flutter analyze
 echo "[audit] flutter test"
 flutter test
 
+echo "[audit] check changelog"
+./scripts/check_changelog.sh
+
 echo "[audit] 通过"
