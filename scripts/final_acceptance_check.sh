@@ -19,6 +19,10 @@ if [[ "$SKIP_UAT" == "true" ]]; then
 fi
 
 echo "[Final] 2) 双机UAT结果检查"
-./scripts/check_uat_result.sh
+if ! ./scripts/check_uat_result.sh; then
+  echo "[Final] UAT 强校验未通过，输出预检问题清单："
+  ./scripts/lint_uat_result.sh || true
+  exit 1
+fi
 
 echo "[Final] 最终检查通过（含双机UAT）"

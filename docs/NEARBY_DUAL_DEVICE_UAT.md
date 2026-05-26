@@ -113,6 +113,12 @@
 - “截图证据（必填）”4 项都要填写图片路径（`.png/.jpg/.jpeg/.webp`）
 - 若填本地路径，文件需真实存在于仓库中（推荐放在 `docs/uat_screenshots/`）
 
+推荐执行顺序：
+
+1. 先运行 `./scripts/lint_uat_result.sh`（一次性列出所有问题）。
+2. 修完后运行 `./scripts/check_uat_result.sh`（最终强校验）。
+3. 最后运行 `./scripts/final_acceptance_check.sh`（全量验收门禁）。
+
 ## 4. 故障排查
 
 若无法发现设备：

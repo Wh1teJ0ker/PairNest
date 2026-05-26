@@ -20,15 +20,15 @@ if rg -n "YYYY-MM-DD|<name>|<model / android version>|<issue / screenshot path /
   exit 3
 fi
 
-date_line="$(rg -n "^日期：" "$UAT_FILE" | head -n 1 || true)"
-build_line="$(rg -n "^构建版本：" "$UAT_FILE" | head -n 1 || true)"
-tester_line="$(rg -n "^测试人：" "$UAT_FILE" | head -n 1 || true)"
-device_a_line="$(rg -n "^- 设备 A：" "$UAT_FILE" | head -n 1 || true)"
-device_b_line="$(rg -n "^- 设备 B：" "$UAT_FILE" | head -n 1 || true)"
-bluetooth_line="$(rg -n "^- 蓝牙：" "$UAT_FILE" | head -n 1 || true)"
-location_line="$(rg -n "^- 定位：" "$UAT_FILE" | head -n 1 || true)"
-wifi_line="$(rg -n "^- WiFi：" "$UAT_FILE" | head -n 1 || true)"
-permission_line="$(rg -n "^- 权限：" "$UAT_FILE" | head -n 1 || true)"
+date_line="$(rg -m1 "^日期：" "$UAT_FILE" || true)"
+build_line="$(rg -m1 "^构建版本：" "$UAT_FILE" || true)"
+tester_line="$(rg -m1 "^测试人：" "$UAT_FILE" || true)"
+device_a_line="$(rg -m1 "^- 设备 A：" "$UAT_FILE" || true)"
+device_b_line="$(rg -m1 "^- 设备 B：" "$UAT_FILE" || true)"
+bluetooth_line="$(rg -m1 "^- 蓝牙：" "$UAT_FILE" || true)"
+location_line="$(rg -m1 "^- 定位：" "$UAT_FILE" || true)"
+wifi_line="$(rg -m1 "^- WiFi：" "$UAT_FILE" || true)"
+permission_line="$(rg -m1 "^- 权限：" "$UAT_FILE" || true)"
 
 for required_line in \
   "$date_line" \
@@ -48,7 +48,7 @@ done
 
 extract_backtick_value() {
   local raw="$1"
-  echo "$raw" | sed -E 's/^.*：`(.*)`$/\1/'
+  echo "$raw" | sed -E 's/^.*：`([^`]*)`[[:space:]]*$/\1/'
 }
 
 date_value="$(extract_backtick_value "$date_line")"
@@ -114,13 +114,13 @@ required_screenshots=(
 )
 
 for label in "${required_screenshots[@]}"; do
-  line="$(rg -n "^- ${label}：" "$UAT_FILE" | head -n 1 || true)"
+  line="$(rg -m1 "^- ${label}：" "$UAT_FILE" || true)"
   if [[ -z "$line" ]]; then
     echo "[uat] 缺少截图字段：$label"
     exit 4
   fi
 
-  if ! echo "$line" | rg -q "：`[^`]+`$"; then
+  if ! echo "$line" | rg -q '：`[^`]+`$'; then
     echo "[uat] 截图字段格式错误（需使用反引号包裹路径）：$label"
     exit 4
   fi
