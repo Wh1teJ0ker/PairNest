@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/providers.dart';
+import '../../domain/models.dart';
 import '../../widgets/app_feedback.dart';
 import '../../widgets/atmosphere_background.dart';
 import '../../widgets/empty_state_card.dart';
@@ -28,6 +29,7 @@ class _GrowthPageState extends ConsumerState<GrowthPage> {
   Widget build(BuildContext context) {
     final isCompact = MediaQuery.of(context).size.width < 380;
     final scoreAsync = ref.watch(growthProvider);
+    final taskHistoryAsync = ref.watch(growthTaskHistoryProvider);
     final profile = ref.watch(profileProvider).valueOrNull;
 
     return Scaffold(
@@ -134,6 +136,17 @@ class _GrowthPageState extends ConsumerState<GrowthPage> {
                         '一起完成任务: +4 intimacy / +2 activity / +4 chemistry',
                       ),
                       const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          _quickTaskChip('一起散步'),
+                          _quickTaskChip('一起做饭'),
+                          _quickTaskChip('一起观影'),
+                          _quickTaskChip('一起运动'),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
                       TextField(
                         controller: _taskController,
                         decoration: const InputDecoration(
@@ -146,29 +159,86 @@ class _GrowthPageState extends ConsumerState<GrowthPage> {
                         onPressed: profile == null
                             ? null
                             : () async {
-                                final task = _taskController.text.trim();
-                                if (task.isEmpty) {
-                                  return;
-                                }
-                                await ref
-                                    .read(pairRepositoryProvider)
-                                    .completeTaskTogether(
-                                      profile: profile,
-                                      taskTitle: task,
-                                    );
-                                _taskController.clear();
-                                ref.invalidate(growthProvider);
-                                ref.invalidate(todayStatusProvider);
-                                if (!context.mounted) {
-                                  return;
-                                }
-                                AppFeedback.success(context, '任务已完成，成长值已增加');
+                                await _submitTask(profile);
                               },
                         icon: const Icon(Icons.celebration_rounded),
                         label: const Text('完成任务并加分'),
                       ),
                     ],
                   ),
+                ),
+                taskHistoryAsync.when(
+                  data: (tasks) => SectionCard(
+                    accent: const Color(0xFFD7E8F8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Row(
+                          children: [
+                            Icon(Icons.history_rounded, size: 20),
+                            SizedBox(width: 8),
+                            Text(
+                              '最近完成任务',
+                              style: TextStyle(fontWeight: FontWeight.w700),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        if (tasks.isEmpty)
+                          const EmptyStateCard(
+                            icon: Icons.task_alt_rounded,
+                            title: '还没有任务记录',
+                            subtitle: '完成一次共同任务后会出现在这里。',
+                            accent: Color(0xFFD7E8F8),
+                          )
+                        else
+                          ...tasks.map(
+                            (task) => Padding(
+                              padding: const EdgeInsets.only(bottom: 8),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Padding(
+                                    padding: EdgeInsets.only(top: 2),
+                                    child: Icon(
+                                      Icons.check_circle_rounded,
+                                      size: 16,
+                                      color: Color(0xFF4B7EA7),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          task.title,
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          _formatDateTime(task.completedAt),
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.black54,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
+                  error: (e, _) => Center(child: Text('任务记录加载失败: $e')),
                 ),
                 if (profile == null)
                   const EmptyStateCard(
@@ -198,5 +268,46 @@ class _GrowthPageState extends ConsumerState<GrowthPage> {
         ],
       ),
     );
+  }
+
+  Widget _quickTaskChip(String title) {
+    return ActionChip(
+      avatar: const Icon(Icons.add_task_rounded, size: 16),
+      label: Text(title),
+      onPressed: () {
+        _taskController.text = title;
+      },
+    );
+  }
+
+  Future<void> _submitTask(CoupleProfile profile) async {
+    final task = _taskController.text.trim();
+    if (task.isEmpty) {
+      if (!mounted) {
+        return;
+      }
+      AppFeedback.info(context, '请先填写任务名称');
+      return;
+    }
+    await ref
+        .read(pairRepositoryProvider)
+        .completeTaskTogether(profile: profile, taskTitle: task);
+    _taskController.clear();
+    ref.invalidate(growthProvider);
+    ref.invalidate(growthTaskHistoryProvider);
+    ref.invalidate(todayStatusProvider);
+    if (!mounted) {
+      return;
+    }
+    AppFeedback.success(context, '任务已完成，成长值已增加');
+  }
+
+  String _formatDateTime(DateTime value) {
+    final y = value.year.toString().padLeft(4, '0');
+    final m = value.month.toString().padLeft(2, '0');
+    final d = value.day.toString().padLeft(2, '0');
+    final hh = value.hour.toString().padLeft(2, '0');
+    final mm = value.minute.toString().padLeft(2, '0');
+    return '$y-$m-$d $hh:$mm';
   }
 }

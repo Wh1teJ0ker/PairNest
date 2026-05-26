@@ -167,6 +167,20 @@ class GrowthScore {
   static const zero = GrowthScore(intimacy: 0, activity: 0, chemistry: 0);
 }
 
+class GrowthTaskRecord {
+  const GrowthTaskRecord({
+    required this.id,
+    required this.title,
+    required this.completedAt,
+    required this.deviceId,
+  });
+
+  final String id;
+  final String title;
+  final DateTime completedAt;
+  final String deviceId;
+}
+
 class AnniversaryItem {
   const AnniversaryItem({
     required this.id,

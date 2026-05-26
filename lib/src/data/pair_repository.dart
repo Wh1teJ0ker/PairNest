@@ -381,6 +381,42 @@ class PairRepository implements SyncRepositoryPort {
     return score;
   }
 
+  Future<List<GrowthTaskRecord>> recentGrowthTasks(
+    CoupleProfile profile, {
+    int limit = 8,
+  }) async {
+    final events = await eventsByPair(profile.pairId);
+    final records = events
+        .where((event) => event.type == EventType.completeTask)
+        .map(growthTaskRecordFromEvent)
+        .whereType<GrowthTaskRecord>()
+        .toList();
+    records.sort((a, b) => b.completedAt.compareTo(a.completedAt));
+    if (records.length <= limit) {
+      return records;
+    }
+    return records.take(limit).toList();
+  }
+
+  @visibleForTesting
+  static GrowthTaskRecord? growthTaskRecordFromEvent(PairEvent event) {
+    if (event.type != EventType.completeTask) {
+      return null;
+    }
+    final title = (event.payload['taskTitle'] as String?)?.trim();
+    if (title == null || title.isEmpty) {
+      return null;
+    }
+    final completedAtText = event.payload['completedAt'] as String?;
+    final completedAt = DateTime.tryParse(completedAtText ?? '');
+    return GrowthTaskRecord(
+      id: event.eventId,
+      title: title,
+      completedAt: completedAt ?? event.createdAt,
+      deviceId: event.deviceId,
+    );
+  }
+
   Future<List<AnniversaryItem>> anniversaries(CoupleProfile profile) async {
     final events = await eventsByPair(profile.pairId);
     final items = events

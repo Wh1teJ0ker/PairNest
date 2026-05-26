@@ -78,6 +78,16 @@ final growthProvider = FutureProvider<GrowthScore>((ref) async {
   return ref.read(pairRepositoryProvider).growthScore(profile);
 });
 
+final growthTaskHistoryProvider = FutureProvider<List<GrowthTaskRecord>>((
+  ref,
+) async {
+  final profile = await ref.watch(profileProvider.future);
+  if (profile == null) {
+    return <GrowthTaskRecord>[];
+  }
+  return ref.read(pairRepositoryProvider).recentGrowthTasks(profile);
+});
+
 final anniversaryProvider = FutureProvider<List<AnniversaryItem>>((ref) async {
   final profile = await ref.watch(profileProvider.future);
   if (profile == null) {
