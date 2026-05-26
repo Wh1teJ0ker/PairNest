@@ -40,3 +40,6 @@ jobs:
 
       - name: Unit tests
         run: flutter test
+
+      - name: UAT script self-tests
+        run: ./scripts/test_uat_scripts.sh
