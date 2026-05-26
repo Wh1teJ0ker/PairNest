@@ -41,6 +41,7 @@ class _SyncPanelState extends ConsumerState<SyncPanel> {
   bool _connecting = false;
   bool _syncInFlight = false;
   DateTime? _lastAutoSyncAttemptAt;
+  DateTime? _lastReversePushAt;
   int _autoSyncFailureCount = 0;
   String? _lastAutoSyncError;
 
@@ -661,7 +662,60 @@ class _SyncPanelState extends ConsumerState<SyncPanel> {
       ref.invalidate(timelineProvider);
       ref.invalidate(growthProvider);
       ref.invalidate(anniversaryProvider);
+      await _maybePushBackLocalEvents(
+        endpointId: endpointId,
+        session: session,
+        report: report,
+      );
+      return;
     }
+
+    if (kind == 'sync_events_push') {
+      final body = message['raw'] is String
+          ? jsonDecode(message['raw'] as String) as Map<String, dynamic>
+          : message;
+      final pairId = body['pairId'] as String?;
+      if (!session.isMatchingPair(pairId)) {
+        return;
+      }
+      final events = body['events'] as List<dynamic>? ?? <dynamic>[];
+      final report = await session.mergeWithReport(events);
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _status =
+            '双向收敛：新增 ${report.insertedEvents} / 重复 ${report.duplicateEvents}';
+        _lastSyncAt = DateTime.now();
+        _lastMergedEvents += report.insertedEvents;
+        _lastDuplicateEvents += report.duplicateEvents;
+        _crossDeviceNoteDays = report.crossDeviceNoteDays;
+      });
+      ref.invalidate(timelineProvider);
+      ref.invalidate(growthProvider);
+      ref.invalidate(anniversaryProvider);
+    }
+  }
+
+  Future<void> _maybePushBackLocalEvents({
+    required String endpointId,
+    required SyncSession session,
+    required SyncMergeReport report,
+  }) async {
+    if (report.insertedEvents <= 0) {
+      return;
+    }
+    final now = DateTime.now();
+    if (_lastReversePushAt != null &&
+        now.difference(_lastReversePushAt!) < const Duration(seconds: 8)) {
+      return;
+    }
+    _lastReversePushAt = now;
+    final raw = await session.buildFullSyncPushPayload();
+    await ref.read(nearbySyncServiceProvider).sendJson(endpointId, {
+      'kind': 'sync_events_push',
+      'raw': raw,
+    });
   }
 
   Future<void> _onFileTransfer(

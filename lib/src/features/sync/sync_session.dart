@@ -37,6 +37,16 @@ class SyncSession {
     });
   }
 
+  Future<String> buildFullSyncPushPayload() async {
+    final local = await repository.eventsByPair(profile.pairId);
+    return jsonEncode({
+      'kind': 'sync_events_push',
+      'pairId': profile.pairId,
+      'deviceId': profile.myDeviceId,
+      'events': repository.serializeEvents(local),
+    });
+  }
+
   bool isMatchingPair(String? pairId) => pairId == profile.pairId;
 
   Future<void> handleSyncEvents(List<dynamic> rawEvents) async {

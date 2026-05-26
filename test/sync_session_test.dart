@@ -149,6 +149,33 @@ void main() {
       expect(ids, isNot(contains('e1')));
     });
 
+    test('buildFullSyncPushPayload includes all local events', () async {
+      final repo = InMemorySyncRepository([
+        buildEvent(
+          id: 'e1',
+          pairId: 'pair-1',
+          deviceId: 'device-a',
+          type: EventType.addNote,
+          createdAt: DateTime(2026, 5, 26, 10),
+        ),
+        buildEvent(
+          id: 'e2',
+          pairId: 'pair-1',
+          deviceId: 'device-a',
+          type: EventType.addScore,
+          createdAt: DateTime(2026, 5, 26, 11),
+        ),
+      ]);
+
+      final session = SyncSession(repository: repo, profile: profile);
+      final text = await session.buildFullSyncPushPayload();
+      final body = jsonDecode(text) as Map<String, dynamic>;
+      final events = body['events'] as List<dynamic>;
+      expect(body['kind'], 'sync_events_push');
+      expect(body['pairId'], 'pair-1');
+      expect(events.length, 2);
+    });
+
     test('mergeWithReport tracks inserts and duplicates', () async {
       final repo = InMemorySyncRepository([
         buildEvent(
