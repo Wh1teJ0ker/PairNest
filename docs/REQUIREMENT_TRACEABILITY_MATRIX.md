@@ -79,4 +79,6 @@ flutter test
 - `scripts/mvp_self_check.sh`
 - `scripts/release_check.sh`
 - `.github/workflows/flutter_quality.yml`
-
+- `scripts/mvp_self_check.sh` 中“本地优先与无服务端守卫”检查：
+  - 阻止常见网络客户端依赖（`http` / `dio` / `retrofit` 等）
+  - 阻止 `lib/src` 中出现 `http://` / `https://` 远程地址字面量
