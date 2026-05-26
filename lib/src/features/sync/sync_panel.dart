@@ -716,6 +716,10 @@ class _SyncPanelState extends ConsumerState<SyncPanel> {
       'kind': 'sync_events_push',
       'raw': raw,
     });
+    final files = await session.collectMissingImageFiles(const <String>[]);
+    for (final file in files) {
+      await ref.read(nearbySyncServiceProvider).sendFile(endpointId, file);
+    }
   }
 
   Future<void> _onFileTransfer(
