@@ -4,6 +4,12 @@ on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Existing git tag to build and publish, for example v0.1.0"
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -20,6 +26,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && format('refs/tags/{0}', inputs.release_tag) || github.ref }}
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -44,9 +52,14 @@ jobs:
           PUBSPEC_VERSION=$(grep '^version:' pubspec.yaml | awk '{print $2}')
           BUILD_NAME="${PUBSPEC_VERSION%%+*}"
           BUILD_NUMBER="${PUBSPEC_VERSION##*+}"
-          TAG_NAME="${GITHUB_REF_NAME#v}"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TAG_NAME="${{ inputs.release_tag }}"
+          else
+            TAG_NAME="$GITHUB_REF_NAME"
+          fi
+          TAG_NAME="${TAG_NAME#v}"
           if [ "$BUILD_NAME" != "$TAG_NAME" ]; then
-            echo "Tag $GITHUB_REF_NAME does not match pubspec build name $BUILD_NAME" >&2
+            echo "Tag $TAG_NAME does not match pubspec build name $BUILD_NAME" >&2
             exit 1
           fi
           echo "pubspec_version=$PUBSPEC_VERSION" >> "$GITHUB_OUTPUT"
