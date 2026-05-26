@@ -10,6 +10,7 @@ PairNest 的所有重要更新都必须记录在本文件中，详细规范见 `
 - Added GitHub tag-based Android release workflow and documented versioning rules.
 - Standardized the repository homepage as Chinese-first with a maintained English companion README.
 - Added a mandatory changelog policy and validation flow for every code update.
+- Fixed Nearby runtime permission requests by splitting required permissions per Android SDK level.
 
 ## [0.1.1] - 2026-05-26
 

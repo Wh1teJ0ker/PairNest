@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class Permissions {
@@ -16,19 +19,44 @@ class Permissions {
   }
 
   static Future<bool> ensureNearby() async {
-    final requests = <Permission>[
-      Permission.location,
-      Permission.bluetooth,
-      Permission.bluetoothScan,
-      Permission.bluetoothConnect,
-      Permission.bluetoothAdvertise,
-      Permission.nearbyWifiDevices,
-    ];
+    if (!Platform.isAndroid) {
+      return true;
+    }
+
+    final sdkInt = await androidSdkInt();
+    final requests = nearbyPermissionsForSdk(sdkInt);
 
     final results = await requests.request();
     final denied = results.values.any((status) {
       return !(status.isGranted || status.isLimited);
     });
     return !denied;
+  }
+
+  static Future<int> androidSdkInt() async {
+    final info = await DeviceInfoPlugin().androidInfo;
+    return info.version.sdkInt;
+  }
+
+  static List<Permission> nearbyPermissionsForSdk(int sdkInt) {
+    if (sdkInt >= 32) {
+      return const <Permission>[
+        Permission.bluetoothScan,
+        Permission.bluetoothConnect,
+        Permission.bluetoothAdvertise,
+        Permission.nearbyWifiDevices,
+      ];
+    }
+
+    if (sdkInt == 31) {
+      return const <Permission>[
+        Permission.location,
+        Permission.bluetoothScan,
+        Permission.bluetoothConnect,
+        Permission.bluetoothAdvertise,
+      ];
+    }
+
+    return const <Permission>[Permission.location, Permission.bluetooth];
   }
 }

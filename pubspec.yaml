@@ -48,6 +48,7 @@ dependencies:
     path: third_party/nearby_connections
   shared_preferences: ^2.5.3
   flutter_secure_storage: ^10.3.0
+  device_info_plus: ^13.1.0
 
 dev_dependencies:
   flutter_test:
