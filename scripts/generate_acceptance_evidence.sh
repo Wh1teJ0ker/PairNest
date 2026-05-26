@@ -18,6 +18,8 @@ TEST_LOG="$TMP_DIR/test.log"
 RELEASE_LOG="$TMP_DIR/release.log"
 COVERAGE_TABLE="$TMP_DIR/coverage.md"
 UAT_CHECK_LOG="$TMP_DIR/uat_check.log"
+UAT_LINT_LOG="$TMP_DIR/uat_lint.log"
+UAT_SCRIPT_TEST_LOG="$TMP_DIR/uat_script_test.log"
 
 echo "[evidence] flutter analyze"
 flutter analyze | tee "$ANALYZE_LOG"
@@ -36,6 +38,20 @@ if ./scripts/check_uat_result.sh > "$UAT_CHECK_LOG" 2>&1; then
   UAT_STATUS="通过"
 else
   UAT_STATUS="未完成"
+fi
+
+echo "[evidence] ./scripts/lint_uat_result.sh"
+if ./scripts/lint_uat_result.sh > "$UAT_LINT_LOG" 2>&1; then
+  UAT_LINT_STATUS="通过"
+else
+  UAT_LINT_STATUS="未完成"
+fi
+
+echo "[evidence] ./scripts/test_uat_scripts.sh"
+if ./scripts/test_uat_scripts.sh > "$UAT_SCRIPT_TEST_LOG" 2>&1; then
+  UAT_SCRIPT_TEST_STATUS="通过"
+else
+  UAT_SCRIPT_TEST_STATUS="失败"
 fi
 
 cat >"$OUT_FILE" <<EOF
@@ -72,6 +88,8 @@ cat >"$OUT_FILE" <<EOF
 - [ ] 跨 \`pair_id\` 隔离通过
 
 UAT 自动校验：\`$UAT_STATUS\`（来源：\`scripts/check_uat_result.sh\`）
+UAT 预检：\`$UAT_LINT_STATUS\`（来源：\`scripts/lint_uat_result.sh\`）
+UAT 脚本自测：\`$UAT_SCRIPT_TEST_STATUS\`（来源：\`scripts/test_uat_scripts.sh\`）
 
 ## 4) 需求覆盖状态（自动生成）
 
@@ -101,6 +119,18 @@ $(tail -n 30 "$RELEASE_LOG")
 
 \`\`\`text
 $(cat "$UAT_CHECK_LOG")
+\`\`\`
+
+### UAT 预检
+
+\`\`\`text
+$(cat "$UAT_LINT_LOG")
+\`\`\`
+
+### UAT 脚本自测
+
+\`\`\`text
+$(cat "$UAT_SCRIPT_TEST_LOG")
 \`\`\`
 EOF
 

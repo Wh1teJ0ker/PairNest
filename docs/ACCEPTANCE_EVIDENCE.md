@@ -1,12 +1,12 @@
 # PairNest 验收证据报告
 
-生成时间（本地）：`2026-05-26 13:22:24 CST`  
-生成时间（UTC）：`2026-05-26T05:22:24Z`
+生成时间（本地）：`2026-05-26 13:46:46 CST`  
+生成时间（UTC）：`2026-05-26T05:46:46Z`
 
 构建信息：
 
 - 分支：`main`
-- 提交：`29bc749`
+- 提交：`7a83e58`
 
 ## 1) 自动化门禁结果
 
@@ -31,6 +31,8 @@
 - [ ] 跨 `pair_id` 隔离通过
 
 UAT 自动校验：`未完成`（来源：`scripts/check_uat_result.sh`）
+UAT 预检：`未完成`（来源：`scripts/lint_uat_result.sh`）
+UAT 脚本自测：`通过`（来源：`scripts/test_uat_scripts.sh`）
 
 ## 4) 需求覆盖状态（自动生成）
 
@@ -56,65 +58,65 @@ UAT 自动校验：`未完成`（来源：`scripts/check_uat_result.sh`）
 
 ```text
 Analyzing PairNest...                                           
-No issues found! (ran in 1.3s)
+No issues found! (ran in 0.7s)
 ```
 
 ### flutter test（尾部）
 
 ```text
 00:00 +0: loading /Users/joker/Code/PairNest/test/anniversary_item_test.dart
-00:00 +0: /Users/joker/Code/PairNest/test/growth_task_mapping_test.dart: growthTaskRecordFromEvent maps COMPLETE_TASK
+00:00 +0: /Users/joker/Code/PairNest/test/growth_score_aggregation_test.dart: growth aggregation combines ADD_SCORE and note activity bonus
 00:00 +1: /Users/joker/Code/PairNest/test/timeline_mapping_test.dart: timelineEntryFromEvent maps ADD_NOTE with details
-00:00 +2: /Users/joker/Code/PairNest/test/timeline_mapping_test.dart: timelineEntryFromEvent maps ADD_NOTE with details
-00:00 +3: /Users/joker/Code/PairNest/test/timeline_mapping_test.dart: timelineEntryFromEvent maps ADD_ANNIVERSARY to timeline text and tags
-00:00 +4: /Users/joker/Code/PairNest/test/timeline_mapping_test.dart: timelineEntryFromEvent returns null for anniversary with empty title
-00:00 +5: /Users/joker/Code/PairNest/test/anniversary_item_test.dart: AnniversaryItem shouldRemind follows daysLeft and remindDays
+00:00 +2: /Users/joker/Code/PairNest/test/timeline_mapping_test.dart: timelineEntryFromEvent maps ADD_ANNIVERSARY to timeline text and tags
+00:00 +3: /Users/joker/Code/PairNest/test/timeline_mapping_test.dart: timelineEntryFromEvent returns null for anniversary with empty title
+00:00 +4: /Users/joker/Code/PairNest/test/growth_task_mapping_test.dart: growthTaskRecordFromEvent maps COMPLETE_TASK
+00:00 +5: /Users/joker/Code/PairNest/test/growth_task_mapping_test.dart: growthTaskRecordFromEvent ignores empty title
 00:00 +6: /Users/joker/Code/PairNest/test/anniversary_item_test.dart: AnniversaryItem shouldRemind follows daysLeft and remindDays
 00:00 +7: /Users/joker/Code/PairNest/test/anniversary_item_test.dart: Anniversary items can be sorted by daysLeft ascending
-00:00 +8: /Users/joker/Code/PairNest/test/sync_session_test.dart: SyncSession buildSyncResponse only includes missing events
-00:00 +9: /Users/joker/Code/PairNest/test/sync_session_test.dart: SyncSession buildDeltaSyncPushPayload only includes missing local events
-00:00 +10: /Users/joker/Code/PairNest/test/sync_session_test.dart: SyncSession mergeWithReport tracks inserts and duplicates
-00:00 +11: /Users/joker/Code/PairNest/test/sync_session_test.dart: SyncSession mergeWithReport filters events from other pair ids
-00:00 +12: /Users/joker/Code/PairNest/test/sync_session_test.dart: SyncSession collectMissingImageFiles returns existing image files only
-00:00 +13: /Users/joker/Code/PairNest/test/today_status_aggregation_test.dart: todayStatusFromEvents counts checkin/note/task and latest mood
-00:00 +14: /Users/joker/Code/PairNest/test/today_status_aggregation_test.dart: todayStatusFromEvents includes events at day start boundary
-00:00 +15: /Users/joker/Code/PairNest/test/today_status_aggregation_test.dart: todayStatusFromEvents picks latest mood by timestamp not list order
+00:00 +8: /Users/joker/Code/PairNest/test/today_status_aggregation_test.dart: todayStatusFromEvents counts checkin/note/task and latest mood
+00:00 +9: /Users/joker/Code/PairNest/test/today_status_aggregation_test.dart: todayStatusFromEvents includes events at day start boundary
+00:00 +10: /Users/joker/Code/PairNest/test/today_status_aggregation_test.dart: todayStatusFromEvents picks latest mood by timestamp not list order
+00:00 +11: /Users/joker/Code/PairNest/test/sync_session_test.dart: SyncSession buildSyncResponse only includes missing events
+00:00 +12: /Users/joker/Code/PairNest/test/sync_session_test.dart: SyncSession buildDeltaSyncPushPayload only includes missing local events
+00:00 +13: /Users/joker/Code/PairNest/test/sync_session_test.dart: SyncSession mergeWithReport tracks inserts and duplicates
+00:00 +14: /Users/joker/Code/PairNest/test/sync_session_test.dart: SyncSession mergeWithReport filters events from other pair ids
+00:00 +15: /Users/joker/Code/PairNest/test/sync_session_test.dart: SyncSession collectMissingImageFiles returns existing image files only
 00:00 +16: /Users/joker/Code/PairNest/test/widget_test.dart: PairNest app boots
-00:00 +17: All tests passed!
+00:01 +17: All tests passed!
 ```
 
 ### release_check（尾部）
 
 ```text
-[MVP] 1) 代码质量检查
-Formatted 32 files (0 changed) in 0.08 seconds.
-Analyzing PairNest...                                           
-No issues found! (ran in 0.8s)
-00:00 +0: loading /Users/joker/Code/PairNest/test/anniversary_item_test.dart
-00:00 +0: /Users/joker/Code/PairNest/test/anniversary_item_test.dart: AnniversaryItem shouldRemind follows daysLeft and remindDays
-00:00 +1: /Users/joker/Code/PairNest/test/anniversary_item_test.dart: Anniversary items can be sorted by daysLeft ascending
-00:00 +2: /Users/joker/Code/PairNest/test/timeline_mapping_test.dart: timelineEntryFromEvent maps ADD_NOTE with details
-00:00 +3: /Users/joker/Code/PairNest/test/timeline_mapping_test.dart: timelineEntryFromEvent maps ADD_ANNIVERSARY to timeline text and tags
-00:00 +4: /Users/joker/Code/PairNest/test/timeline_mapping_test.dart: timelineEntryFromEvent returns null for anniversary with empty title
-00:00 +5: /Users/joker/Code/PairNest/test/growth_task_mapping_test.dart: growthTaskRecordFromEvent maps COMPLETE_TASK
-00:00 +6: /Users/joker/Code/PairNest/test/growth_task_mapping_test.dart: growthTaskRecordFromEvent ignores empty title
-00:00 +7: /Users/joker/Code/PairNest/test/growth_score_aggregation_test.dart: growth aggregation combines ADD_SCORE and note activity bonus
-00:00 +8: /Users/joker/Code/PairNest/test/sync_session_test.dart: SyncSession buildSyncResponse only includes missing events
-00:00 +9: /Users/joker/Code/PairNest/test/sync_session_test.dart: SyncSession buildDeltaSyncPushPayload only includes missing local events
-00:00 +10: /Users/joker/Code/PairNest/test/sync_session_test.dart: SyncSession mergeWithReport tracks inserts and duplicates
-00:00 +11: /Users/joker/Code/PairNest/test/sync_session_test.dart: SyncSession mergeWithReport filters events from other pair ids
-00:00 +12: /Users/joker/Code/PairNest/test/sync_session_test.dart: SyncSession collectMissingImageFiles returns existing image files only
-00:00 +13: /Users/joker/Code/PairNest/test/today_status_aggregation_test.dart: todayStatusFromEvents counts checkin/note/task and latest mood
-00:00 +14: /Users/joker/Code/PairNest/test/today_status_aggregation_test.dart: todayStatusFromEvents includes events at day start boundary
-00:00 +15: /Users/joker/Code/PairNest/test/today_status_aggregation_test.dart: todayStatusFromEvents picks latest mood by timestamp not list order
-00:00 +16: /Users/joker/Code/PairNest/test/widget_test.dart: PairNest app boots
-00:00 +17: All tests passed!
-[MVP] 2) 核心能力文件存在性检查
-[MVP] 3) 关键字段检查
-[MVP] 4) 本地优先与无服务端守卫
 [MVP] 基线通过
 [Release] 3) 关键文档检查
 [Release] 4) 版本号检查
+[Release] 5) UAT 脚本自测
+[uat-test] 场景1：完整结果应通过
+[uat-lint] 预检通过，可执行 ./scripts/check_uat_result.sh
+[uat] total=5 passed=5 pending=0
+[uat] 双机验收项全部通过
+[uat-test] 场景2：存在未勾选项应被拦截
+[uat-lint] 发现 1 个问题：
+  1. 仍有未勾选验收项（pending=1）
+
+[uat-lint] 处理建议：
+  1) 按 docs/NEARBY_DUAL_DEVICE_UAT.md 完成双机测试
+  2) 填写 docs/NEARBY_DUAL_DEVICE_UAT_RESULT.md 所有字段与截图路径
+  3) 先运行 ./scripts/lint_uat_result.sh，清零问题后再运行 ./scripts/check_uat_result.sh
+[uat] total=5 passed=4 pending=1
+[uat] 仍有未完成验收项
+[uat-test] 场景3：占位符未替换应被拦截
+[uat-lint] 发现 2 个问题：
+  1. 检测到模板占位符未替换
+  2. 日期格式错误（应为 YYYY-MM-DD）：YYYY-MM-DD
+
+[uat-lint] 处理建议：
+  1) 按 docs/NEARBY_DUAL_DEVICE_UAT.md 完成双机测试
+  2) 填写 docs/NEARBY_DUAL_DEVICE_UAT_RESULT.md 所有字段与截图路径
+  3) 先运行 ./scripts/lint_uat_result.sh，清零问题后再运行 ./scripts/check_uat_result.sh
+[uat] 检测到模板占位符未替换，请先填写真实验收信息
+[uat-test] 全部通过
 [Release] 发布前检查通过
 ```
 
@@ -122,4 +124,57 @@ No issues found! (ran in 0.8s)
 
 ```text
 [uat] 检测到模板占位符未替换，请先填写真实验收信息
+```
+
+### UAT 预检
+
+```text
+[uat-lint] 发现 12 个问题：
+  1. 检测到模板占位符未替换
+  2. 日期格式错误（应为 YYYY-MM-DD）：YYYY-MM-DD
+  3. 设备 A/B 信息完全相同，请确认是两台不同设备
+  4. 蓝牙字段仅允许 on/off：on/off
+  5. 定位字段仅允许 on/off：on/off
+  6. WiFi 字段仅允许 on/off：on/off
+  7. 权限字段仅允许 granted/partial：granted/partial
+  8. 截图字段仍包含占位符：绑定二维码页
+  9. 截图字段仍包含占位符：自动模式运行中状态
+  10. 截图字段仍包含占位符：同步后B端首页与时间轴
+  11. 截图字段仍包含占位符：跨 pair_id 隔离提示
+  12. 仍有未勾选验收项（pending=5）
+
+[uat-lint] 处理建议：
+  1) 按 docs/NEARBY_DUAL_DEVICE_UAT.md 完成双机测试
+  2) 填写 docs/NEARBY_DUAL_DEVICE_UAT_RESULT.md 所有字段与截图路径
+  3) 先运行 ./scripts/lint_uat_result.sh，清零问题后再运行 ./scripts/check_uat_result.sh
+```
+
+### UAT 脚本自测
+
+```text
+[uat-test] 场景1：完整结果应通过
+[uat-lint] 预检通过，可执行 ./scripts/check_uat_result.sh
+[uat] total=5 passed=5 pending=0
+[uat] 双机验收项全部通过
+[uat-test] 场景2：存在未勾选项应被拦截
+[uat-lint] 发现 1 个问题：
+  1. 仍有未勾选验收项（pending=1）
+
+[uat-lint] 处理建议：
+  1) 按 docs/NEARBY_DUAL_DEVICE_UAT.md 完成双机测试
+  2) 填写 docs/NEARBY_DUAL_DEVICE_UAT_RESULT.md 所有字段与截图路径
+  3) 先运行 ./scripts/lint_uat_result.sh，清零问题后再运行 ./scripts/check_uat_result.sh
+[uat] total=5 passed=4 pending=1
+[uat] 仍有未完成验收项
+[uat-test] 场景3：占位符未替换应被拦截
+[uat-lint] 发现 2 个问题：
+  1. 检测到模板占位符未替换
+  2. 日期格式错误（应为 YYYY-MM-DD）：YYYY-MM-DD
+
+[uat-lint] 处理建议：
+  1) 按 docs/NEARBY_DUAL_DEVICE_UAT.md 完成双机测试
+  2) 填写 docs/NEARBY_DUAL_DEVICE_UAT_RESULT.md 所有字段与截图路径
+  3) 先运行 ./scripts/lint_uat_result.sh，清零问题后再运行 ./scripts/check_uat_result.sh
+[uat] 检测到模板占位符未替换，请先填写真实验收信息
+[uat-test] 全部通过
 ```
