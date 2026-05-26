@@ -26,24 +26,27 @@ class SyncSession {
 
   Future<String> buildSyncResponse(List<String> knownEventIds) async {
     final local = await repository.eventsByPair(profile.pairId);
-    final missing = local.where(
-      (event) => !knownEventIds.contains(event.eventId),
-    );
+    final localIds = local.map((event) => event.eventId).toList();
+    final missing = _missingEvents(local, knownEventIds);
     return jsonEncode({
       'kind': 'sync_events',
       'pairId': profile.pairId,
       'deviceId': profile.myDeviceId,
       'events': repository.serializeEvents(missing.toList()),
+      'responderKnownEventIds': localIds,
     });
   }
 
-  Future<String> buildFullSyncPushPayload() async {
+  Future<String> buildDeltaSyncPushPayload(
+    List<String> remoteKnownEventIds,
+  ) async {
     final local = await repository.eventsByPair(profile.pairId);
+    final missing = _missingEvents(local, remoteKnownEventIds);
     return jsonEncode({
       'kind': 'sync_events_push',
       'pairId': profile.pairId,
       'deviceId': profile.myDeviceId,
-      'events': repository.serializeEvents(local),
+      'events': repository.serializeEvents(missing.toList()),
     });
   }
 
@@ -58,9 +61,7 @@ class SyncSession {
     List<String> knownEventIds,
   ) async {
     final events = await repository.eventsByPair(profile.pairId);
-    final missing = events.where(
-      (event) => !knownEventIds.contains(event.eventId),
-    );
+    final missing = _missingEvents(events, knownEventIds);
     final transfers = <OutboundFileTransfer>[];
 
     for (final event in missing) {
@@ -120,5 +121,13 @@ class SyncSession {
       filteredPairMismatchEvents: pairMismatch,
       crossDeviceNoteDays: crossDays,
     );
+  }
+
+  Iterable<PairEvent> _missingEvents(
+    List<PairEvent> local,
+    List<String> knownEventIds,
+  ) {
+    final known = knownEventIds.toSet();
+    return local.where((event) => !known.contains(event.eventId));
   }
 }

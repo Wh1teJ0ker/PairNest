@@ -645,6 +645,10 @@ class _SyncPanelState extends ConsumerState<SyncPanel> {
         return;
       }
       final events = body['events'] as List<dynamic>? ?? <dynamic>[];
+      final responderKnown =
+          (body['responderKnownEventIds'] as List<dynamic>? ?? <dynamic>[])
+              .map((e) => e.toString())
+              .toList();
       final report = await session.mergeWithReport(events);
       if (!mounted) {
         return;
@@ -666,6 +670,7 @@ class _SyncPanelState extends ConsumerState<SyncPanel> {
         endpointId: endpointId,
         session: session,
         report: report,
+        remoteKnownEventIds: responderKnown,
       );
       return;
     }
@@ -701,6 +706,7 @@ class _SyncPanelState extends ConsumerState<SyncPanel> {
     required String endpointId,
     required SyncSession session,
     required SyncMergeReport report,
+    required List<String> remoteKnownEventIds,
   }) async {
     if (report.insertedEvents <= 0) {
       return;
@@ -711,12 +717,12 @@ class _SyncPanelState extends ConsumerState<SyncPanel> {
       return;
     }
     _lastReversePushAt = now;
-    final raw = await session.buildFullSyncPushPayload();
+    final raw = await session.buildDeltaSyncPushPayload(remoteKnownEventIds);
     await ref.read(nearbySyncServiceProvider).sendJson(endpointId, {
       'kind': 'sync_events_push',
       'raw': raw,
     });
-    final files = await session.collectMissingImageFiles(const <String>[]);
+    final files = await session.collectMissingImageFiles(remoteKnownEventIds);
     for (final file in files) {
       await ref.read(nearbySyncServiceProvider).sendFile(endpointId, file);
     }
