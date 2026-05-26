@@ -108,3 +108,11 @@ final todayStatusProvider = FutureProvider<TodayStatus>((ref) async {
   }
   return ref.read(pairRepositoryProvider).todayStatus(profile);
 });
+
+final pairingStatusProvider = FutureProvider<PairingStatus?>((ref) async {
+  final profile = await ref.watch(profileProvider.future);
+  if (profile == null) {
+    return null;
+  }
+  return ref.read(pairRepositoryProvider).pairingStatus(profile);
+});

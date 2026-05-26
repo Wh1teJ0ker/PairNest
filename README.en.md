@@ -1,8 +1,8 @@
-# PairNest
+# Tongpin (PairNest)
 
 [中文](README.md) | English
 
-PairNest is a local-first Flutter app for couples to record shared memories, grow together, and sync directly between devices without relying on a centralized backend.
+Tongpin (PairNest) is a local-first Flutter app for couples to record shared memories, grow together, and sync directly between devices without relying on a centralized backend.
 
 [![Flutter Quality Gate](https://github.com/Wh1teJ0ker/PairNest/actions/workflows/flutter_quality.yml/badge.svg)](https://github.com/Wh1teJ0ker/PairNest/actions/workflows/flutter_quality.yml)
 [![Android Release](https://github.com/Wh1teJ0ker/PairNest/actions/workflows/android_release.yml/badge.svg)](https://github.com/Wh1teJ0ker/PairNest/actions/workflows/android_release.yml)
@@ -70,7 +70,6 @@ scripts/                  audit, validation, and release scripts
 .github/workflows/        CI and release automation
 third_party/              vendored build-critical dependencies
 android/                  Android host project
-ios/                      iOS host project
 ```
 
 ## Getting Started
@@ -106,7 +105,7 @@ flutter build apk --release
 ```bash
 flutter analyze
 flutter test
-./scripts/release_check.sh
+./scripts/release/release_check.sh
 ```
 
 ## Release Rules
@@ -119,10 +118,10 @@ The canonical app version is defined in `pubspec.yaml`.
 
 Current baseline:
 
-- app version: `0.1.2+3`
-- current tag: `v0.1.2`
+- app version: `0.1.3+4`
+- current tag: `v0.1.3`
 
-Detailed release governance is documented in [`docs/VERSIONING.md`](docs/VERSIONING.md).
+Detailed release governance is documented in [`docs/release/VERSIONING.md`](docs/release/VERSIONING.md).
 
 ## Changelog Policy
 
@@ -131,7 +130,7 @@ Every code update must include an auditable change description.
 See:
 
 - [`CHANGELOG.md`](CHANGELOG.md)
-- [`docs/CHANGELOG_POLICY.md`](docs/CHANGELOG_POLICY.md)
+- [`docs/policies/CHANGELOG_POLICY.md`](docs/policies/CHANGELOG_POLICY.md)
 - [`CONTRIBUTING.md`](CONTRIBUTING.md)
 
 ## Contributing

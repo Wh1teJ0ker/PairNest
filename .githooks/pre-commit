@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT_DIR="$(git rev-parse --show-toplevel)"
 cd "$ROOT_DIR"
 
-./scripts/changed_dart_format.sh
+./scripts/dev/changed_dart_format.sh
 
 if git diff --cached --name-only --diff-filter=ACMR | rg -q '(^|/)pubspec\.yaml$'; then
   echo "[pre-commit] pubspec.yaml 变更，校验依赖解析"

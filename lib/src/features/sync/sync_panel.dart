@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/providers.dart';
 import '../../core/permissions.dart';
+import '../../domain/models.dart';
 import '../../widgets/app_feedback.dart';
 import '../../widgets/pressable_scale.dart';
 import '../../widgets/section_card.dart';
@@ -53,6 +54,7 @@ class _SyncPanelState extends ConsumerState<SyncPanel> {
 
   @override
   Widget build(BuildContext context) {
+    final pairingStatus = ref.watch(pairingStatusProvider).valueOrNull;
     return SectionCard(
       accent: const Color(0xFFCEE2F5),
       child: Column(
@@ -67,6 +69,11 @@ class _SyncPanelState extends ConsumerState<SyncPanel> {
           ),
           const SizedBox(height: 8),
           Text('状态: $_status'),
+          if (pairingStatus != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 10),
+              child: _pairingStatusBlock(pairingStatus),
+            ),
           if (_autoModeEnabled)
             Padding(
               padding: const EdgeInsets.only(top: 6),
@@ -559,6 +566,8 @@ class _SyncPanelState extends ConsumerState<SyncPanel> {
       ref.invalidate(timelineProvider);
       ref.invalidate(growthProvider);
       ref.invalidate(anniversaryProvider);
+      ref.invalidate(todayStatusProvider);
+      ref.invalidate(pairingStatusProvider);
     } finally {
       _syncInFlight = false;
       if (mounted) {
@@ -666,6 +675,8 @@ class _SyncPanelState extends ConsumerState<SyncPanel> {
       ref.invalidate(timelineProvider);
       ref.invalidate(growthProvider);
       ref.invalidate(anniversaryProvider);
+      ref.invalidate(todayStatusProvider);
+      ref.invalidate(pairingStatusProvider);
       await _maybePushBackLocalEvents(
         endpointId: endpointId,
         session: session,
@@ -699,6 +710,8 @@ class _SyncPanelState extends ConsumerState<SyncPanel> {
       ref.invalidate(timelineProvider);
       ref.invalidate(growthProvider);
       ref.invalidate(anniversaryProvider);
+      ref.invalidate(todayStatusProvider);
+      ref.invalidate(pairingStatusProvider);
     }
   }
 
@@ -771,6 +784,7 @@ class _SyncPanelState extends ConsumerState<SyncPanel> {
       _lastMergedFiles += 1;
     });
     ref.invalidate(timelineProvider);
+    ref.invalidate(pairingStatusProvider);
   }
 
   void _scheduleAutoSync() {
@@ -834,5 +848,64 @@ class _SyncPanelState extends ConsumerState<SyncPanel> {
       return null;
     }
     return displayText.substring(start + 1, end);
+  }
+
+  Widget _pairingStatusBlock(PairingStatus status) {
+    final paired = status.isPairedAcrossDevices;
+    final lastRemoteText = status.lastRemoteBoundAt == null
+        ? '尚未收到对端绑定事件'
+        : '最近对端绑定: ${status.lastRemoteBoundAt!.month.toString().padLeft(2, '0')}-${status.lastRemoteBoundAt!.day.toString().padLeft(2, '0')} ${status.lastRemoteBoundAt!.hour.toString().padLeft(2, '0')}:${status.lastRemoteBoundAt!.minute.toString().padLeft(2, '0')}';
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF7FBFE),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFD7E7F5)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                paired ? Icons.verified_user_rounded : Icons.hub_rounded,
+                size: 18,
+                color: paired
+                    ? const Color(0xFF266A48)
+                    : const Color(0xFF406C97),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  paired ? '双端配对已完成' : '当前仅完成单端绑定',
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text('情侣空间: ${status.shortPairId}'),
+          Text('本机昵称: ${status.meName}'),
+          Text(
+            '匹配对象: ${status.remoteParticipantNames.isEmpty ? status.expectedPartnerName : status.remoteParticipantNames.join(" / ")}',
+          ),
+          Text('已同步设备数: ${status.syncedDeviceCount}'),
+          Text(
+            lastRemoteText,
+            style: const TextStyle(fontSize: 12, color: Colors.black54),
+          ),
+          if (!paired)
+            const Padding(
+              padding: EdgeInsets.only(top: 6),
+              child: Text(
+                '还需要让另一台设备扫码加入，并完成至少一次 Nearby 同步，状态才会切换为双端已匹配。',
+                style: TextStyle(fontSize: 12, color: Color(0xFF7C5A33)),
+              ),
+            ),
+        ],
+      ),
+    );
   }
 }

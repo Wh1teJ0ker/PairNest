@@ -421,6 +421,11 @@ class PairRepository implements SyncRepositoryPort {
     return todayStatusFromEvents(events, DateTime.now());
   }
 
+  Future<PairingStatus> pairingStatus(CoupleProfile profile) async {
+    final events = await eventsByPair(profile.pairId);
+    return pairingStatusFromEvents(events, profile);
+  }
+
   @visibleForTesting
   static TodayStatus todayStatusFromEvents(
     List<PairEvent> events,
@@ -467,6 +472,66 @@ class PairRepository implements SyncRepositoryPort {
       noteCount: noteCount,
       completedTaskCount: completedTaskCount,
       latestMood: latestMood,
+    );
+  }
+
+  @visibleForTesting
+  static PairingStatus pairingStatusFromEvents(
+    List<PairEvent> events,
+    CoupleProfile profile,
+  ) {
+    final bindEvents = events.where(
+      (event) => event.type == EventType.bindPair,
+    );
+    final Map<String, PairEvent> latestByDevice = <String, PairEvent>{};
+
+    for (final event in bindEvents) {
+      final current = latestByDevice[event.deviceId];
+      if (current == null || event.createdAt.isAfter(current.createdAt)) {
+        latestByDevice[event.deviceId] = event;
+      }
+    }
+
+    final hasLocalBinding = latestByDevice.containsKey(profile.myDeviceId);
+    final remoteEntries =
+        latestByDevice.entries
+            .where((entry) => entry.key != profile.myDeviceId)
+            .toList()
+          ..sort((a, b) => b.value.createdAt.compareTo(a.value.createdAt));
+
+    final participantNames =
+        latestByDevice.values
+            .map((event) => (event.payload['meName'] as String?)?.trim() ?? '')
+            .where((name) => name.isNotEmpty)
+            .toSet()
+            .toList()
+          ..sort();
+
+    final remoteParticipantNames = remoteEntries
+        .map(
+          (entry) => (entry.value.payload['meName'] as String?)?.trim() ?? '',
+        )
+        .where((name) => name.isNotEmpty)
+        .toSet()
+        .toList();
+
+    final remoteDeviceIds = remoteEntries.map((entry) => entry.key).toList();
+
+    return PairingStatus(
+      pairId: profile.pairId,
+      myDeviceId: profile.myDeviceId,
+      meName: profile.meName,
+      expectedPartnerName: profile.partnerName,
+      startedAt: profile.startedAt,
+      participantNames: participantNames,
+      remoteParticipantNames: remoteParticipantNames,
+      remoteDeviceIds: remoteDeviceIds,
+      syncedDeviceCount: latestByDevice.length,
+      hasLocalBinding: hasLocalBinding,
+      hasRemoteBinding: remoteEntries.isNotEmpty,
+      lastRemoteBoundAt: remoteEntries.isEmpty
+          ? null
+          : remoteEntries.first.value.createdAt,
     );
   }
 

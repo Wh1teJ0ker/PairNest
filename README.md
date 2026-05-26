@@ -1,15 +1,15 @@
-# PairNest
+# 同频（PairNest）
 
 中文主页 | [English](README.en.md)
 
-PairNest 是一款面向情侣关系场景的本地优先 Flutter 应用，强调私密记录、双人协作与设备直连同步，不依赖中心化后端服务。
+同频（PairNest）是一款面向情侣关系场景的本地优先 Flutter 应用，强调私密记录、双人协作与设备直连同步，不依赖中心化后端服务。
 
 [![Flutter Quality Gate](https://github.com/Wh1teJ0ker/PairNest/actions/workflows/flutter_quality.yml/badge.svg)](https://github.com/Wh1teJ0ker/PairNest/actions/workflows/flutter_quality.yml)
 [![Android Release](https://github.com/Wh1teJ0ker/PairNest/actions/workflows/android_release.yml/badge.svg)](https://github.com/Wh1teJ0ker/PairNest/actions/workflows/android_release.yml)
 
 ## 项目概览
 
-PairNest 当前聚焦以下产品方向：
+同频（PairNest）当前聚焦以下产品方向：
 
 - 本地优先：默认数据只保留在设备本地
 - 双人空间：围绕情侣共同记录与共同成长设计
@@ -99,7 +99,6 @@ scripts/                  审计、发布与校验脚本
 .github/workflows/        CI 与 Release 自动化
 third_party/              固定构建依赖的 vendored 组件
 android/                  Android 宿主工程
-ios/                      iOS 宿主工程
 ```
 
 ## 快速开始
@@ -151,14 +150,14 @@ flutter build apk --release
 ```bash
 flutter analyze
 flutter test
-./scripts/release_check.sh
+./scripts/release/release_check.sh
 ```
 
 补充验收工具：
 
 ```bash
-./scripts/mvp_self_check.sh
-./scripts/final_acceptance_check.sh --skip-uat
+./scripts/qa/mvp_self_check.sh
+./scripts/qa/final_acceptance_check.sh --skip-uat
 ```
 
 ## 发布流程
@@ -180,18 +179,18 @@ flutter test
 
 当前基线版本：
 
-- 应用版本：`0.1.2+3`
-- 当前发布 tag：`v0.1.2`
+- 应用版本：`0.1.3+4`
+- 当前发布 tag：`v0.1.3`
 
-详细规则见 [`docs/VERSIONING.md`](docs/VERSIONING.md)。
+详细规则见 [`docs/release/VERSIONING.md`](docs/release/VERSIONING.md)。
 
 ### 标准发布步骤
 
 1. 更新 `pubspec.yaml`
 2. 更新 `CHANGELOG.md`
-3. 运行 `./scripts/release_check.sh`
+3. 运行 `./scripts/release/release_check.sh`
 4. 推送到 `main`
-5. 创建并推送形如 `v0.1.2` 的 tag
+5. 创建并推送形如 `v0.1.3` 的 tag
 6. GitHub Actions 自动构建并上传 Android Release 资产
 
 ## 日志与变更规范
@@ -201,7 +200,7 @@ flutter test
 规范入口：
 
 - [`CHANGELOG.md`](CHANGELOG.md)
-- [`docs/CHANGELOG_POLICY.md`](docs/CHANGELOG_POLICY.md)
+- [`docs/policies/CHANGELOG_POLICY.md`](docs/policies/CHANGELOG_POLICY.md)
 - [`CONTRIBUTING.md`](CONTRIBUTING.md)
 
 最低要求：
@@ -220,16 +219,16 @@ flutter test
 
 - `flutter analyze`
 - `flutter test`
-- `./scripts/release_check.sh`
+- `./scripts/release/release_check.sh`
 - 本地 ABI 拆包发布构建
 
 ## 文档索引
 
-- [`docs/VERSIONING.md`](docs/VERSIONING.md)
-- [`docs/CHANGELOG_POLICY.md`](docs/CHANGELOG_POLICY.md)
-- [`docs/NEARBY_DUAL_DEVICE_UAT.md`](docs/NEARBY_DUAL_DEVICE_UAT.md)
-- [`docs/REQUIREMENT_TRACEABILITY_MATRIX.md`](docs/REQUIREMENT_TRACEABILITY_MATRIX.md)
-- [`docs/MVP_ACCEPTANCE_CHECKLIST.md`](docs/MVP_ACCEPTANCE_CHECKLIST.md)
+- [`docs/release/VERSIONING.md`](docs/release/VERSIONING.md)
+- [`docs/policies/CHANGELOG_POLICY.md`](docs/policies/CHANGELOG_POLICY.md)
+- [`docs/qa/NEARBY_DUAL_DEVICE_UAT.md`](docs/qa/NEARBY_DUAL_DEVICE_UAT.md)
+- [`docs/qa/REQUIREMENT_TRACEABILITY_MATRIX.md`](docs/qa/REQUIREMENT_TRACEABILITY_MATRIX.md)
+- [`docs/qa/MVP_ACCEPTANCE_CHECKLIST.md`](docs/qa/MVP_ACCEPTANCE_CHECKLIST.md)
 
 ## 路线图
 
@@ -243,7 +242,6 @@ flutter test
 
 - `nearby_connections` 当前以 `third_party/` vendored 形式固定，避免上游 Android 构建不稳定
 - 本机构建链路曾受 Maven TLS 抖动影响，当前已通过固定依赖与本地验证缓解
-- iOS / macOS 某些插件仍会输出 Swift Package Manager 支持警告
 
 ## 贡献说明
 

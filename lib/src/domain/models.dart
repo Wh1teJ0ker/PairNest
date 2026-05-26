@@ -119,6 +119,68 @@ class CoupleProfile {
   }
 }
 
+class PairingStatus {
+  const PairingStatus({
+    required this.pairId,
+    required this.myDeviceId,
+    required this.meName,
+    required this.expectedPartnerName,
+    required this.startedAt,
+    required this.participantNames,
+    required this.remoteParticipantNames,
+    required this.remoteDeviceIds,
+    required this.syncedDeviceCount,
+    required this.hasLocalBinding,
+    required this.hasRemoteBinding,
+    required this.lastRemoteBoundAt,
+  });
+
+  final String pairId;
+  final String myDeviceId;
+  final String meName;
+  final String expectedPartnerName;
+  final DateTime startedAt;
+  final List<String> participantNames;
+  final List<String> remoteParticipantNames;
+  final List<String> remoteDeviceIds;
+  final int syncedDeviceCount;
+  final bool hasLocalBinding;
+  final bool hasRemoteBinding;
+  final DateTime? lastRemoteBoundAt;
+
+  bool get isPairedAcrossDevices => hasLocalBinding && hasRemoteBinding;
+
+  String get matchedPartnerName {
+    if (remoteParticipantNames.isNotEmpty) {
+      return remoteParticipantNames.first;
+    }
+    return expectedPartnerName;
+  }
+
+  String get shortPairId =>
+      pairId.length <= 8 ? pairId : pairId.substring(0, 8).toUpperCase();
+
+  String get summaryLabel {
+    if (!hasLocalBinding) {
+      return '本机绑定记录缺失';
+    }
+    if (!hasRemoteBinding) {
+      return '等待对方设备完成同步确认';
+    }
+    return '已与 $matchedPartnerName 完成双端匹配';
+  }
+
+  String get detailLabel {
+    if (!hasLocalBinding) {
+      return '当前空间缺少本机 BIND_PAIR 记录，请重新创建或重新加入双人空间。';
+    }
+    if (!hasRemoteBinding) {
+      return '对方扫码加入后，还需要双方进行一次 Nearby 同步，双端配对才算真正完成。';
+    }
+    return '双方绑定事件都已落库，并已识别到另一台设备的加入状态。';
+  }
+}
+
 class TimelineEntry {
   const TimelineEntry({
     required this.id,

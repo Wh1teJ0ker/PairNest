@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/providers.dart';
+import '../../domain/models.dart';
 import '../../widgets/atmosphere_background.dart';
 import '../../widgets/empty_state_card.dart';
 import '../../widgets/section_card.dart';
@@ -14,6 +15,7 @@ class HomePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final profile = ref.watch(profileProvider).valueOrNull;
+    final pairingStatus = ref.watch(pairingStatusProvider);
     final growth = ref.watch(growthProvider);
     final timeline = ref.watch(timelineProvider);
     final anniversaries = ref.watch(anniversaryProvider);
@@ -24,7 +26,7 @@ class HomePage extends ConsumerWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('PairNest')),
+      appBar: AppBar(title: const Text('同频 PairNest')),
       body: AtmosphereBackground(
         topGlow: const Color(0x26EA8395),
         bottomGlow: const Color(0x2678B5D8),
@@ -35,36 +37,49 @@ class HomePage extends ConsumerWidget {
               children: [
                 SectionCard(
                   accent: const Color(0xFFF1C7CE),
-                  child: Row(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFCE6EA),
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: const Icon(
-                          Icons.favorite_rounded,
-                          color: Color(0xFFD95E74),
-                          size: 22,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              '和 ${profile.partnerName} 在一起第 ${profile.loveDays} 天',
-                              style: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                              ),
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFCE6EA),
+                              borderRadius: BorderRadius.circular(14),
                             ),
-                            const SizedBox(height: 8),
-                            const Text('本地优先 · 双端共享 · 靠近同步'),
-                          ],
-                        ),
+                            child: const Icon(
+                              Icons.favorite_rounded,
+                              color: Color(0xFFD95E74),
+                              size: 22,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '和 ${profile.partnerName} 在一起第 ${profile.loveDays} 天',
+                                  style: const TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                const Text('本地优先 · 双端共享 · 靠近同步'),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 14),
+                      pairingStatus.when(
+                        data: (status) => status == null
+                            ? const SizedBox.shrink()
+                            : _pairingOverview(status),
+                        loading: () => const LinearProgressIndicator(),
+                        error: (e, _) => Text('配对状态加载失败: $e'),
                       ),
                     ],
                   ),
@@ -322,6 +337,77 @@ class HomePage extends ConsumerWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [Icon(icon, size: 14), const SizedBox(width: 5), Text(text)],
+      ),
+    );
+  }
+
+  Widget _pairingOverview(PairingStatus status) {
+    final paired = status.isPairedAcrossDevices;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: paired ? const Color(0xFFEAF5EC) : const Color(0xFFFFF3E8),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: paired ? const Color(0xFFC6E2CF) : const Color(0xFFF1D5B8),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                paired ? Icons.link_rounded : Icons.qr_code_2_rounded,
+                size: 18,
+                color: paired
+                    ? const Color(0xFF2B7A4B)
+                    : const Color(0xFFB06A27),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  status.summaryLabel,
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            status.detailLabel,
+            style: const TextStyle(color: Colors.black54, fontSize: 12),
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _statusChip(
+                '空间 ID ${status.shortPairId}',
+                const Color(0xFFF8E7EA),
+                Icons.tag_rounded,
+              ),
+              _statusChip(
+                '已识别设备 ${status.syncedDeviceCount}',
+                const Color(0xFFE8EEF8),
+                Icons.devices_rounded,
+              ),
+              _statusChip(
+                paired ? '双端已确认' : '待对端确认',
+                paired ? const Color(0xFFE5F3E8) : const Color(0xFFFFEAD9),
+                paired ? Icons.verified_rounded : Icons.hourglass_top_rounded,
+              ),
+              if (status.remoteParticipantNames.isNotEmpty)
+                _statusChip(
+                  '已匹配 ${status.remoteParticipantNames.join(" / ")}',
+                  const Color(0xFFF1EAF8),
+                  Icons.diversity_3_rounded,
+                ),
+            ],
+          ),
+        ],
       ),
     );
   }

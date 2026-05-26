@@ -13,7 +13,7 @@
 必读文档：
 
 - `CHANGELOG.md`
-- `docs/CHANGELOG_POLICY.md`
+- `docs/policies/CHANGELOG_POLICY.md`
 
 最低要求：
 
@@ -22,7 +22,7 @@
 - 发布前必须执行：
 
 ```bash
-./scripts/check_changelog.sh
+./scripts/quality/check_changelog.sh
 ```
 
 ## 本地代码审计（实时）
@@ -33,12 +33,12 @@
   - 检查暂存的 Dart 文件格式
   - 若 `pubspec.yaml` 变更则执行 `flutter pub get`
 - `pre-push`
-  - 执行完整审计脚本 `./scripts/audit.sh`
+  - 执行完整审计脚本 `./scripts/quality/audit.sh`
 
 ## 手动执行完整审计
 
 ```bash
-./scripts/audit.sh
+./scripts/quality/audit.sh
 ```
 
 该脚本会执行：
@@ -47,7 +47,7 @@
 2. `dart format --output=none --set-exit-if-changed lib test`
 3. `flutter analyze`
 4. `flutter test`
-5. `./scripts/check_changelog.sh`
+5. `./scripts/quality/check_changelog.sh`
 
 ## CI 审计
 
@@ -60,13 +60,13 @@ GitHub Actions 工作流文件：
 ## 发布前检查
 
 ```bash
-./scripts/release_check.sh
+./scripts/release/release_check.sh
 ```
 
 该脚本会串行执行：
 
-1. `./scripts/audit.sh`
-2. `./scripts/mvp_self_check.sh`
+1. `./scripts/quality/audit.sh`
+2. `./scripts/qa/mvp_self_check.sh`
 3. 关键文档存在性检查
 4. `pubspec.yaml` 版本号检查
 5. 更新日志规范检查
