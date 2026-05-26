@@ -546,16 +546,9 @@ class _SyncPanelState extends ConsumerState<SyncPanel> {
         _trackAutoSyncFailure('发送同步请求失败');
         return;
       }
-      final unsynced = await ref
-          .read(pairRepositoryProvider)
-          .unsyncedEvents(profile.pairId);
-      await ref
-          .read(pairRepositoryProvider)
-          .markEventsSynced(unsynced.map((it) => it.eventId).toList());
-
       if (mounted) {
         setState(() {
-          _status = '同步请求已发送，待同步 ${unsynced.length} 条事件';
+          _status = '同步请求已发送，等待对端回传缺失事件';
         });
         if (showSuccessToast) {
           AppFeedback.success(context, '同步请求已发送');

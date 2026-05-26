@@ -43,6 +43,7 @@
 | 同步缺失事件 | `SyncSession.buildSyncRequest/buildSyncResponse` | `test/sync_session_test.dart` |
 | 去重与合并 | `SyncSession.mergeWithReport` | `test/sync_session_test.dart` |
 | 文件回填 | `file_meta` + `updateEventImagePath` | 双机图片同步验收 |
+| 同步状态语义 | `sync_panel.dart` 仅在请求阶段展示“已发起同步”，不提前写 `synced_at` | 代码审计 + UAT 状态文案核对 |
 
 ## E. UI 设计方向
 
