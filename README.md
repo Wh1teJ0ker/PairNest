@@ -180,8 +180,8 @@ flutter test
 
 当前基线版本：
 
-- 应用版本：`0.1.1+2`
-- 当前发布 tag：`v0.1.1`
+- 应用版本：`0.1.2+3`
+- 当前发布 tag：`v0.1.2`
 
 详细规则见 [`docs/VERSIONING.md`](docs/VERSIONING.md)。
 
@@ -191,7 +191,7 @@ flutter test
 2. 更新 `CHANGELOG.md`
 3. 运行 `./scripts/release_check.sh`
 4. 推送到 `main`
-5. 创建并推送形如 `v0.1.1` 的 tag
+5. 创建并推送形如 `v0.1.2` 的 tag
 6. GitHub Actions 自动构建并上传 Android Release 资产
 
 ## 日志与变更规范

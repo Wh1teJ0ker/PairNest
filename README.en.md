@@ -119,8 +119,8 @@ The canonical app version is defined in `pubspec.yaml`.
 
 Current baseline:
 
-- app version: `0.1.1+2`
-- current tag: `v0.1.1`
+- app version: `0.1.2+3`
+- current tag: `v0.1.2`
 
 Detailed release governance is documented in [`docs/VERSIONING.md`](docs/VERSIONING.md).
 
