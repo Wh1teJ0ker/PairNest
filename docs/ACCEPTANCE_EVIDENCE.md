@@ -1,12 +1,12 @@
 # PairNest 验收证据报告
 
-生成时间（本地）：`2026-05-26 11:51:50 CST`  
-生成时间（UTC）：`2026-05-26T03:51:50Z`
+生成时间（本地）：`2026-05-26 13:04:34 CST`  
+生成时间（UTC）：`2026-05-26T05:04:34Z`
 
 构建信息：
 
 - 分支：`main`
-- 提交：`9d708a0`
+- 提交：`02f41c3`
 
 ## 1) 自动化门禁结果
 
@@ -29,6 +29,8 @@
 - [ ] 图片跨端同步与回填通过
 - [ ] 重复同步幂等通过
 - [ ] 跨 `pair_id` 隔离通过
+
+UAT 自动校验：`未完成`（来源：`scripts/check_uat_result.sh`）
 
 ## 4) 需求覆盖状态（自动生成）
 
@@ -54,7 +56,7 @@
 
 ```text
 Analyzing PairNest...                                           
-No issues found! (ran in 4.2s)
+No issues found! (ran in 0.7s)
 ```
 
 ### flutter test（尾部）
@@ -66,47 +68,59 @@ No issues found! (ran in 4.2s)
 00:00 +2: /Users/joker/Code/PairNest/test/timeline_mapping_test.dart: timelineEntryFromEvent maps ADD_NOTE with details
 00:00 +3: /Users/joker/Code/PairNest/test/timeline_mapping_test.dart: timelineEntryFromEvent maps ADD_ANNIVERSARY to timeline text and tags
 00:00 +4: /Users/joker/Code/PairNest/test/timeline_mapping_test.dart: timelineEntryFromEvent returns null for anniversary with empty title
-00:01 +5: /Users/joker/Code/PairNest/test/growth_task_mapping_test.dart: growthTaskRecordFromEvent maps COMPLETE_TASK
-00:01 +6: /Users/joker/Code/PairNest/test/growth_task_mapping_test.dart: growthTaskRecordFromEvent ignores empty title
-00:03 +7: /Users/joker/Code/PairNest/test/widget_test.dart: PairNest app boots
-00:03 +8: /Users/joker/Code/PairNest/test/widget_test.dart: PairNest app boots
-00:03 +9: /Users/joker/Code/PairNest/test/widget_test.dart: PairNest app boots
-00:03 +10: /Users/joker/Code/PairNest/test/widget_test.dart: PairNest app boots
-00:03 +11: /Users/joker/Code/PairNest/test/widget_test.dart: PairNest app boots
-00:06 +12: All tests passed!
+00:00 +5: /Users/joker/Code/PairNest/test/growth_score_aggregation_test.dart: growth aggregation combines ADD_SCORE and note activity bonus
+00:00 +6: /Users/joker/Code/PairNest/test/growth_task_mapping_test.dart: growthTaskRecordFromEvent maps COMPLETE_TASK
+00:00 +7: /Users/joker/Code/PairNest/test/growth_task_mapping_test.dart: growthTaskRecordFromEvent ignores empty title
+00:00 +8: /Users/joker/Code/PairNest/test/sync_session_test.dart: SyncSession buildSyncResponse only includes missing events
+00:00 +9: /Users/joker/Code/PairNest/test/sync_session_test.dart: SyncSession buildFullSyncPushPayload includes all local events
+00:00 +10: /Users/joker/Code/PairNest/test/sync_session_test.dart: SyncSession mergeWithReport tracks inserts and duplicates
+00:00 +11: /Users/joker/Code/PairNest/test/sync_session_test.dart: SyncSession mergeWithReport filters events from other pair ids
+00:00 +12: /Users/joker/Code/PairNest/test/sync_session_test.dart: SyncSession collectMissingImageFiles returns existing image files only
+00:00 +13: /Users/joker/Code/PairNest/test/today_status_aggregation_test.dart: todayStatusFromEvents counts checkin/note/task and latest mood
+00:00 +14: /Users/joker/Code/PairNest/test/today_status_aggregation_test.dart: todayStatusFromEvents includes events at day start boundary
+00:00 +15: /Users/joker/Code/PairNest/test/today_status_aggregation_test.dart: todayStatusFromEvents picks latest mood by timestamp not list order
+00:00 +16: /Users/joker/Code/PairNest/test/widget_test.dart: PairNest app boots
+00:00 +17: All tests passed!
 ```
 
 ### release_check（尾部）
 
 ```text
-00:02 +9: /Users/joker/Code/PairNest/test/widget_test.dart: PairNest app boots
-00:02 +10: /Users/joker/Code/PairNest/test/widget_test.dart: PairNest app boots
-00:02 +11: /Users/joker/Code/PairNest/test/widget_test.dart: PairNest app boots
-00:04 +12: All tests passed!
-[audit] 通过
-[Release] 2) MVP 验收自检
 [MVP] 1) 代码质量检查
-Formatted 30 files (0 changed) in 0.33 seconds.
+Formatted 32 files (0 changed) in 0.07 seconds.
 Analyzing PairNest...                                           
-No issues found! (ran in 2.7s)
+No issues found! (ran in 0.7s)
 00:00 +0: loading /Users/joker/Code/PairNest/test/anniversary_item_test.dart
 00:00 +0: /Users/joker/Code/PairNest/test/anniversary_item_test.dart: AnniversaryItem shouldRemind follows daysLeft and remindDays
 00:00 +1: /Users/joker/Code/PairNest/test/anniversary_item_test.dart: Anniversary items can be sorted by daysLeft ascending
 00:00 +2: /Users/joker/Code/PairNest/test/timeline_mapping_test.dart: timelineEntryFromEvent maps ADD_NOTE with details
 00:00 +3: /Users/joker/Code/PairNest/test/timeline_mapping_test.dart: timelineEntryFromEvent maps ADD_ANNIVERSARY to timeline text and tags
 00:00 +4: /Users/joker/Code/PairNest/test/timeline_mapping_test.dart: timelineEntryFromEvent returns null for anniversary with empty title
-00:01 +5: /Users/joker/Code/PairNest/test/growth_task_mapping_test.dart: growthTaskRecordFromEvent maps COMPLETE_TASK
-00:01 +6: /Users/joker/Code/PairNest/test/growth_task_mapping_test.dart: growthTaskRecordFromEvent ignores empty title
-00:02 +7: /Users/joker/Code/PairNest/test/widget_test.dart: PairNest app boots
-00:02 +8: /Users/joker/Code/PairNest/test/widget_test.dart: PairNest app boots
-00:02 +9: /Users/joker/Code/PairNest/test/widget_test.dart: PairNest app boots
-00:02 +10: /Users/joker/Code/PairNest/test/widget_test.dart: PairNest app boots
-00:02 +11: /Users/joker/Code/PairNest/test/widget_test.dart: PairNest app boots
-00:04 +12: All tests passed!
+00:00 +5: /Users/joker/Code/PairNest/test/growth_task_mapping_test.dart: growthTaskRecordFromEvent maps COMPLETE_TASK
+00:00 +6: /Users/joker/Code/PairNest/test/growth_task_mapping_test.dart: growthTaskRecordFromEvent maps COMPLETE_TASK
+00:00 +7: /Users/joker/Code/PairNest/test/growth_task_mapping_test.dart: growthTaskRecordFromEvent ignores empty title
+00:00 +8: /Users/joker/Code/PairNest/test/sync_session_test.dart: SyncSession buildSyncResponse only includes missing events
+00:00 +9: /Users/joker/Code/PairNest/test/sync_session_test.dart: SyncSession buildFullSyncPushPayload includes all local events
+00:00 +10: /Users/joker/Code/PairNest/test/sync_session_test.dart: SyncSession mergeWithReport tracks inserts and duplicates
+00:00 +11: /Users/joker/Code/PairNest/test/sync_session_test.dart: SyncSession mergeWithReport filters events from other pair ids
+00:00 +12: /Users/joker/Code/PairNest/test/sync_session_test.dart: SyncSession collectMissingImageFiles returns existing image files only
+00:00 +13: /Users/joker/Code/PairNest/test/today_status_aggregation_test.dart: todayStatusFromEvents counts checkin/note/task and latest mood
+00:00 +14: /Users/joker/Code/PairNest/test/today_status_aggregation_test.dart: todayStatusFromEvents includes events at day start boundary
+00:00 +15: /Users/joker/Code/PairNest/test/today_status_aggregation_test.dart: todayStatusFromEvents picks latest mood by timestamp not list order
+00:00 +16: /Users/joker/Code/PairNest/test/widget_test.dart: PairNest app boots
+00:00 +17: All tests passed!
 [MVP] 2) 核心能力文件存在性检查
 [MVP] 3) 关键字段检查
+[MVP] 4) 本地优先与无服务端守卫
 [MVP] 基线通过
 [Release] 3) 关键文档检查
 [Release] 4) 版本号检查
 [Release] 发布前检查通过
+```
+
+### UAT 校验
+
+```text
+[uat] total=5 passed=0 pending=5
+[uat] 仍有未完成验收项
 ```

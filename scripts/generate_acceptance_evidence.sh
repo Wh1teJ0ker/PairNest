@@ -17,6 +17,7 @@ ANALYZE_LOG="$TMP_DIR/analyze.log"
 TEST_LOG="$TMP_DIR/test.log"
 RELEASE_LOG="$TMP_DIR/release.log"
 COVERAGE_TABLE="$TMP_DIR/coverage.md"
+UAT_CHECK_LOG="$TMP_DIR/uat_check.log"
 
 echo "[evidence] flutter analyze"
 flutter analyze | tee "$ANALYZE_LOG"
@@ -29,6 +30,13 @@ echo "[evidence] ./scripts/release_check.sh"
 
 echo "[evidence] ./scripts/check_requirement_coverage.sh"
 ./scripts/check_requirement_coverage.sh > "$COVERAGE_TABLE"
+
+echo "[evidence] ./scripts/check_uat_result.sh"
+if ./scripts/check_uat_result.sh > "$UAT_CHECK_LOG" 2>&1; then
+  UAT_STATUS="通过"
+else
+  UAT_STATUS="未完成"
+fi
 
 cat >"$OUT_FILE" <<EOF
 # PairNest 验收证据报告
@@ -63,6 +71,8 @@ cat >"$OUT_FILE" <<EOF
 - [ ] 重复同步幂等通过
 - [ ] 跨 \`pair_id\` 隔离通过
 
+UAT 自动校验：\`$UAT_STATUS\`（来源：\`scripts/check_uat_result.sh\`）
+
 ## 4) 需求覆盖状态（自动生成）
 
 $(cat "$COVERAGE_TABLE")
@@ -85,6 +95,12 @@ $(tail -n 20 "$TEST_LOG")
 
 \`\`\`text
 $(tail -n 30 "$RELEASE_LOG")
+\`\`\`
+
+### UAT 校验
+
+\`\`\`text
+$(cat "$UAT_CHECK_LOG")
 \`\`\`
 EOF
 
