@@ -4,7 +4,10 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
-UAT_FILE="docs/NEARBY_DUAL_DEVICE_UAT_RESULT.md"
+UAT_FILE="${UAT_FILE:-docs/NEARBY_DUAL_DEVICE_UAT_RESULT.md}"
+if [[ "$UAT_FILE" != /* ]]; then
+  UAT_FILE="$ROOT_DIR/$UAT_FILE"
+fi
 
 if [[ ! -f "$UAT_FILE" ]]; then
   echo "[uat] 缺失 $UAT_FILE"
