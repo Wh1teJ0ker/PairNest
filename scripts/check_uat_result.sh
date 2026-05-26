@@ -20,6 +20,92 @@ if rg -n "YYYY-MM-DD|<name>|<model / android version>|<issue / screenshot path /
   exit 3
 fi
 
+date_line="$(rg -n "^日期：" "$UAT_FILE" | head -n 1 || true)"
+build_line="$(rg -n "^构建版本：" "$UAT_FILE" | head -n 1 || true)"
+tester_line="$(rg -n "^测试人：" "$UAT_FILE" | head -n 1 || true)"
+device_a_line="$(rg -n "^- 设备 A：" "$UAT_FILE" | head -n 1 || true)"
+device_b_line="$(rg -n "^- 设备 B：" "$UAT_FILE" | head -n 1 || true)"
+bluetooth_line="$(rg -n "^- 蓝牙：" "$UAT_FILE" | head -n 1 || true)"
+location_line="$(rg -n "^- 定位：" "$UAT_FILE" | head -n 1 || true)"
+wifi_line="$(rg -n "^- WiFi：" "$UAT_FILE" | head -n 1 || true)"
+permission_line="$(rg -n "^- 权限：" "$UAT_FILE" | head -n 1 || true)"
+
+for required_line in \
+  "$date_line" \
+  "$build_line" \
+  "$tester_line" \
+  "$device_a_line" \
+  "$device_b_line" \
+  "$bluetooth_line" \
+  "$location_line" \
+  "$wifi_line" \
+  "$permission_line"; do
+  if [[ -z "$required_line" ]]; then
+    echo "[uat] 缺少必要字段，请检查 UAT 结果模板结构"
+    exit 5
+  fi
+done
+
+extract_backtick_value() {
+  local raw="$1"
+  echo "$raw" | sed -E 's/^.*：`(.*)`$/\1/'
+}
+
+date_value="$(extract_backtick_value "$date_line")"
+build_value="$(extract_backtick_value "$build_line")"
+tester_value="$(extract_backtick_value "$tester_line")"
+device_a_value="$(extract_backtick_value "$device_a_line")"
+device_b_value="$(extract_backtick_value "$device_b_line")"
+bluetooth_value="$(extract_backtick_value "$bluetooth_line")"
+location_value="$(extract_backtick_value "$location_line")"
+wifi_value="$(extract_backtick_value "$wifi_line")"
+permission_value="$(extract_backtick_value "$permission_line")"
+
+if ! echo "$date_value" | rg -q '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'; then
+  echo "[uat] 日期格式错误，应为 YYYY-MM-DD：$date_value"
+  exit 5
+fi
+
+if ! echo "$build_value" | rg -q '^[0-9]+\.[0-9]+\.[0-9]+\+[0-9]+$'; then
+  echo "[uat] 构建版本格式错误，应为 x.y.z+n：$build_value"
+  exit 5
+fi
+
+if [[ -z "$tester_value" ]]; then
+  echo "[uat] 测试人不能为空"
+  exit 5
+fi
+
+if [[ -z "$device_a_value" || -z "$device_b_value" ]]; then
+  echo "[uat] 设备信息不能为空"
+  exit 5
+fi
+
+if [[ "$device_a_value" == "$device_b_value" ]]; then
+  echo "[uat] 设备 A/B 信息完全相同，请确认是两台不同设备"
+  exit 5
+fi
+
+if [[ "$bluetooth_value" != "on" && "$bluetooth_value" != "off" ]]; then
+  echo "[uat] 蓝牙字段仅允许 on/off：$bluetooth_value"
+  exit 5
+fi
+
+if [[ "$location_value" != "on" && "$location_value" != "off" ]]; then
+  echo "[uat] 定位字段仅允许 on/off：$location_value"
+  exit 5
+fi
+
+if [[ "$wifi_value" != "on" && "$wifi_value" != "off" ]]; then
+  echo "[uat] WiFi 字段仅允许 on/off：$wifi_value"
+  exit 5
+fi
+
+if [[ "$permission_value" != "granted" && "$permission_value" != "partial" ]]; then
+  echo "[uat] 权限字段仅允许 granted/partial：$permission_value"
+  exit 5
+fi
+
 required_screenshots=(
   "绑定二维码页"
   "自动模式运行中状态"
