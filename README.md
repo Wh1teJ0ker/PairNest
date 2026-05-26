@@ -51,6 +51,20 @@ flutter run -d android
 - `docs/NEARBY_DUAL_DEVICE_UAT.md`
 - `docs/REQUIREMENT_TRACEABILITY_MATRIX.md`
 
+## 最终验收命令
+
+默认（含双机UAT结果校验）：
+
+```bash
+./scripts/final_acceptance_check.sh
+```
+
+仅自动化门禁（跳过双机UAT）：
+
+```bash
+./scripts/final_acceptance_check.sh --skip-uat
+```
+
 ## 数据设计
 
 所有行为都落为事件，不直接改业务表：
