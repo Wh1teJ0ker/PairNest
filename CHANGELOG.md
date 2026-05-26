@@ -2,6 +2,13 @@
 
 All notable changes to PairNest will be documented in this file.
 
+## [Unreleased]
+
+### Changed
+
+- Pinned Android build inputs required for reproducible local and CI builds.
+- Added GitHub tag-based Android release workflow and documented versioning rules.
+
 ## [0.1.0] - 2026-05-26
 
 ### Added

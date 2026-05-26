@@ -22,7 +22,9 @@ for f in "${required[@]}"; do
 done
 
 echo "[Release] 4) 版本号检查"
-rg -n "^version: 0\.1\.0\+1$" pubspec.yaml >/dev/null
+VERSION_LINE="$(rg -n "^version: " pubspec.yaml)"
+echo "[Release] $VERSION_LINE"
+echo "$VERSION_LINE" | rg -q '^.+version: [0-9]+\.[0-9]+\.[0-9]+\+[0-9]+$'
 
 echo "[Release] 5) UAT 脚本自测"
 ./scripts/test_uat_scripts.sh
