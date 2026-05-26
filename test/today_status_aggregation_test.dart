@@ -93,4 +93,28 @@ void main() {
     final status = PairRepository.todayStatusFromEvents(events, now);
     expect(status.noteCount, 1);
   });
+
+  test(
+    'todayStatusFromEvents picks latest mood by timestamp not list order',
+    () {
+      final now = DateTime(2026, 5, 26, 21, 0);
+      final events = <PairEvent>[
+        _event(
+          id: 'mood-new',
+          type: EventType.addMood,
+          at: DateTime(2026, 5, 26, 20, 0),
+          payload: {'mood': '兴奋'},
+        ),
+        _event(
+          id: 'mood-old',
+          type: EventType.addMood,
+          at: DateTime(2026, 5, 26, 9, 0),
+          payload: {'mood': '平静'},
+        ),
+      ];
+
+      final status = PairRepository.todayStatusFromEvents(events, now);
+      expect(status.latestMood, '兴奋');
+    },
+  );
 }

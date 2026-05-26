@@ -457,6 +457,7 @@ class PairRepository implements SyncRepositoryPort {
     var noteCount = 0;
     var completedTaskCount = 0;
     String? latestMood;
+    DateTime? latestMoodAt;
 
     for (final event in events) {
       final inToday =
@@ -475,8 +476,13 @@ class PairRepository implements SyncRepositoryPort {
       if (event.type == EventType.completeTask) {
         completedTaskCount += 1;
       }
-      if (event.type == EventType.addMood && latestMood == null) {
-        latestMood = event.payload['mood'] as String?;
+      if (event.type == EventType.addMood) {
+        final mood = event.payload['mood'] as String?;
+        if (mood != null &&
+            (latestMoodAt == null || event.createdAt.isAfter(latestMoodAt))) {
+          latestMood = mood;
+          latestMoodAt = event.createdAt;
+        }
       }
     }
 
