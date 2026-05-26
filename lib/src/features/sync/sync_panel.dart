@@ -21,9 +21,11 @@ class SyncPanel extends ConsumerStatefulWidget {
 
 class _SyncPanelState extends ConsumerState<SyncPanel> {
   static const _autoSyncGap = Duration(seconds: 12);
+  static const _autoSyncTick = Duration(seconds: 20);
 
   bool _discovering = false;
   bool _advertising = false;
+  bool _autoModeEnabled = false;
   String _status = '未同步';
   final List<String> _endpoints = <String>[];
   String? _selectedEndpointId;
@@ -39,6 +41,8 @@ class _SyncPanelState extends ConsumerState<SyncPanel> {
   bool _connecting = false;
   bool _syncInFlight = false;
   DateTime? _lastAutoSyncAttemptAt;
+  int _autoSyncFailureCount = 0;
+  String? _lastAutoSyncError;
 
   @override
   void dispose() {
@@ -62,6 +66,21 @@ class _SyncPanelState extends ConsumerState<SyncPanel> {
           ),
           const SizedBox(height: 8),
           Text('状态: $_status'),
+          if (_autoModeEnabled)
+            Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: Text(
+                _autoSyncFailureCount == 0
+                    ? '自动模式运行中：靠近后会自动发现并同步'
+                    : '自动模式异常 $_autoSyncFailureCount 次：${_lastAutoSyncError ?? '未知原因'}',
+                style: TextStyle(
+                  color: _autoSyncFailureCount == 0
+                      ? Colors.black54
+                      : const Color(0xFF9E3D3D),
+                  fontSize: 12,
+                ),
+              ),
+            ),
           if (_lastSyncAt != null)
             Padding(
               padding: const EdgeInsets.only(top: 6),
@@ -83,6 +102,28 @@ class _SyncPanelState extends ConsumerState<SyncPanel> {
             spacing: 8,
             runSpacing: 8,
             children: [
+              ElevatedButton(
+                onPressed: _autoModeEnabled ? null : _enableAutoMode,
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.auto_mode_rounded, size: 16),
+                    SizedBox(width: 6),
+                    Text('一键自动同步'),
+                  ],
+                ),
+              ),
+              OutlinedButton(
+                onPressed: _autoModeEnabled ? _disableAutoMode : null,
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.cancel_schedule_send_rounded, size: 16),
+                    SizedBox(width: 6),
+                    Text('停止自动模式'),
+                  ],
+                ),
+              ),
               ElevatedButton(
                 onPressed: _discovering ? null : _startDiscovery,
                 child: const Row(
@@ -197,13 +238,37 @@ class _SyncPanelState extends ConsumerState<SyncPanel> {
   }
 
   Future<void> _startDiscovery() async {
+    await _startDiscoveryInternal(showToast: true);
+  }
+
+  Future<void> _stopDiscovery() async {
+    await ref.read(nearbySyncServiceProvider).stopDiscovery();
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _discovering = false;
+      _endpoints.clear();
+      _selectedEndpointId = null;
+      _status = '已停止发现';
+    });
+    AppFeedback.info(context, '已停止发现');
+  }
+
+  Future<void> _startAdvertising() async {
+    await _startAdvertisingInternal(showToast: true);
+  }
+
+  Future<void> _startDiscoveryInternal({required bool showToast}) async {
     final granted = await Permissions.ensureNearby();
     if (!granted) {
       if (!mounted) {
         return;
       }
       setState(() => _status = '缺少 Nearby 相关权限');
-      AppFeedback.info(context, '缺少 Nearby 相关权限');
+      if (showToast) {
+        AppFeedback.info(context, '缺少 Nearby 相关权限');
+      }
       return;
     }
     final profile = ref.read(profileProvider).valueOrNull;
@@ -260,32 +325,22 @@ class _SyncPanelState extends ConsumerState<SyncPanel> {
         _status = '发现失败: $e';
         _discovering = false;
       });
-      AppFeedback.error(context, '发现失败: $e');
+      if (showToast) {
+        AppFeedback.error(context, '发现失败: $e');
+      }
     }
   }
 
-  Future<void> _stopDiscovery() async {
-    await ref.read(nearbySyncServiceProvider).stopDiscovery();
-    if (!mounted) {
-      return;
-    }
-    setState(() {
-      _discovering = false;
-      _endpoints.clear();
-      _selectedEndpointId = null;
-      _status = '已停止发现';
-    });
-    AppFeedback.info(context, '已停止发现');
-  }
-
-  Future<void> _startAdvertising() async {
+  Future<void> _startAdvertisingInternal({required bool showToast}) async {
     final granted = await Permissions.ensureNearby();
     if (!granted) {
       if (!mounted) {
         return;
       }
       setState(() => _status = '缺少 Nearby 相关权限');
-      AppFeedback.info(context, '缺少 Nearby 相关权限');
+      if (showToast) {
+        AppFeedback.info(context, '缺少 Nearby 相关权限');
+      }
       return;
     }
     final profile = ref.read(profileProvider).valueOrNull;
@@ -341,10 +396,10 @@ class _SyncPanelState extends ConsumerState<SyncPanel> {
       _advertising = true;
       _status = '已开启 Nearby 广播';
     });
-    AppFeedback.success(context, '可发现已开启');
-    _autoSyncTimer ??= Timer.periodic(const Duration(seconds: 20), (_) {
-      _scheduleAutoSync();
-    });
+    if (showToast) {
+      AppFeedback.success(context, '可发现已开启');
+    }
+    _ensureAutoTimer();
   }
 
   Future<void> _stopAdvertising() async {
@@ -357,8 +412,55 @@ class _SyncPanelState extends ConsumerState<SyncPanel> {
       _status = '已停止广播';
     });
     AppFeedback.info(context, '已停止可发现');
+    if (!_autoModeEnabled) {
+      _autoSyncTimer?.cancel();
+      _autoSyncTimer = null;
+    }
+  }
+
+  Future<void> _enableAutoMode() async {
+    if (_autoModeEnabled) {
+      return;
+    }
+    setState(() {
+      _autoModeEnabled = true;
+      _autoSyncFailureCount = 0;
+      _lastAutoSyncError = null;
+      _status = '正在启动自动同步模式...';
+    });
+    _ensureAutoTimer();
+    await _startAdvertisingInternal(showToast: false);
+    await _startDiscoveryInternal(showToast: false);
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _status = '自动模式已开启，等待附近设备';
+    });
+    AppFeedback.success(context, '自动同步模式已开启');
+  }
+
+  Future<void> _disableAutoMode() async {
+    if (!_autoModeEnabled) {
+      return;
+    }
+    setState(() {
+      _autoModeEnabled = false;
+      _status = '正在关闭自动同步模式...';
+    });
+    await ref.read(nearbySyncServiceProvider).stopDiscovery();
+    await ref.read(nearbySyncServiceProvider).stopAdvertising();
     _autoSyncTimer?.cancel();
     _autoSyncTimer = null;
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _discovering = false;
+      _advertising = false;
+      _status = '自动同步模式已关闭';
+    });
+    AppFeedback.info(context, '自动同步模式已关闭');
   }
 
   Future<void> _syncNow({required bool showSuccessToast}) async {
@@ -383,8 +485,11 @@ class _SyncPanelState extends ConsumerState<SyncPanel> {
       if (endpointId == null || endpointId.isEmpty) {
         if (mounted) {
           setState(() => _status = '请先选择发现到的设备');
-          AppFeedback.info(context, '请先选择发现到的设备');
+          if (showSuccessToast) {
+            AppFeedback.info(context, '请先选择发现到的设备');
+          }
         }
+        _trackAutoSyncFailure('未发现可同步设备');
         return;
       }
 
@@ -416,8 +521,11 @@ class _SyncPanelState extends ConsumerState<SyncPanel> {
           setState(() {
             _status = '连接失败: $e';
           });
-          AppFeedback.error(context, '连接失败: $e');
+          if (showSuccessToast) {
+            AppFeedback.error(context, '连接失败: $e');
+          }
         }
+        _trackAutoSyncFailure('连接失败');
         return;
       }
       final requestText = await session.buildSyncRequest();
@@ -431,8 +539,11 @@ class _SyncPanelState extends ConsumerState<SyncPanel> {
           setState(() {
             _status = '发送同步请求失败: $e';
           });
-          AppFeedback.error(context, '发送同步请求失败: $e');
+          if (showSuccessToast) {
+            AppFeedback.error(context, '发送同步请求失败: $e');
+          }
         }
+        _trackAutoSyncFailure('发送同步请求失败');
         return;
       }
       final unsynced = await ref
@@ -450,6 +561,7 @@ class _SyncPanelState extends ConsumerState<SyncPanel> {
           AppFeedback.success(context, '同步请求已发送');
         }
       }
+      _trackAutoSyncSuccess();
       ref.invalidate(timelineProvider);
       ref.invalidate(growthProvider);
       ref.invalidate(anniversaryProvider);
@@ -619,6 +731,43 @@ class _SyncPanelState extends ConsumerState<SyncPanel> {
     }
     _lastAutoSyncAttemptAt = now;
     unawaited(_syncNow(showSuccessToast: false));
+  }
+
+  void _ensureAutoTimer() {
+    _autoSyncTimer ??= Timer.periodic(_autoSyncTick, (_) async {
+      if (_autoModeEnabled) {
+        if (!_advertising) {
+          await _startAdvertisingInternal(showToast: false);
+        }
+        if (!_discovering) {
+          await _startDiscoveryInternal(showToast: false);
+        }
+      }
+      _scheduleAutoSync();
+    });
+  }
+
+  void _trackAutoSyncFailure(String error) {
+    if (!_autoModeEnabled || !mounted) {
+      return;
+    }
+    setState(() {
+      _autoSyncFailureCount += 1;
+      _lastAutoSyncError = error;
+    });
+  }
+
+  void _trackAutoSyncSuccess() {
+    if (!_autoModeEnabled || !mounted) {
+      return;
+    }
+    if (_autoSyncFailureCount == 0 && _lastAutoSyncError == null) {
+      return;
+    }
+    setState(() {
+      _autoSyncFailureCount = 0;
+      _lastAutoSyncError = null;
+    });
   }
 
   String? _endpointIdFromDisplay(String displayText) {
