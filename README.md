@@ -175,8 +175,8 @@ The canonical app version lives in `pubspec.yaml`.
 
 Current baseline:
 
-- app version: `0.1.0+1`
-- initial tag: `v0.1.0`
+- app version: `0.1.1+2`
+- current tag: `v0.1.1`
 
 Detailed rules are documented in `docs/VERSIONING.md`.
 
@@ -185,7 +185,7 @@ Detailed rules are documented in `docs/VERSIONING.md`.
 1. update `pubspec.yaml`
 2. update `CHANGELOG.md`
 3. push to `main`
-4. create and push a tag such as `v0.1.0`
+4. create and push a tag such as `v0.1.1`
 5. GitHub Actions builds the Android release artifact and publishes a GitHub Release
 
 ## Current Release Status
