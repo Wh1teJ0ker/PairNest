@@ -27,3 +27,10 @@
 备注：
 
 - `<issue / screenshot path / reproducing steps>`
+
+截图证据（必填）：
+
+- 绑定二维码页：`<path/to/qr.png>`
+- 自动模式运行中状态：`<path/to/auto_mode_running.png>`
+- 同步后B端首页与时间轴：`<path/to/synced_b_home_timeline.png>`
+- 跨 pair_id 隔离提示：`<path/to/pair_isolation_hint.png>`
