@@ -16,6 +16,7 @@ trap 'rm -rf "$TMP_DIR"' EXIT
 ANALYZE_LOG="$TMP_DIR/analyze.log"
 TEST_LOG="$TMP_DIR/test.log"
 RELEASE_LOG="$TMP_DIR/release.log"
+COVERAGE_TABLE="$TMP_DIR/coverage.md"
 
 echo "[evidence] flutter analyze"
 flutter analyze | tee "$ANALYZE_LOG"
@@ -25,6 +26,9 @@ flutter test | tee "$TEST_LOG"
 
 echo "[evidence] ./scripts/release_check.sh"
 ./scripts/release_check.sh | tee "$RELEASE_LOG"
+
+echo "[evidence] ./scripts/check_requirement_coverage.sh"
+./scripts/check_requirement_coverage.sh > "$COVERAGE_TABLE"
 
 cat >"$OUT_FILE" <<EOF
 # PairNest 验收证据报告
@@ -59,7 +63,11 @@ cat >"$OUT_FILE" <<EOF
 - [ ] 重复同步幂等通过
 - [ ] 跨 \`pair_id\` 隔离通过
 
-## 4) 命令输出摘要
+## 4) 需求覆盖状态（自动生成）
+
+$(cat "$COVERAGE_TABLE")
+
+## 5) 命令输出摘要
 
 ### flutter analyze（尾部）
 
