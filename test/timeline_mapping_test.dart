@@ -74,4 +74,29 @@ void main() {
       expect(entry, isNull);
     },
   );
+
+  test('timelineEntryFromEvent ignores checkin and task-only events', () {
+    final checkinEvent = PairEvent(
+      eventId: 'e-checkin',
+      pairId: 'pair-1',
+      deviceId: 'device-a',
+      type: EventType.dailyCheckin,
+      payload: {'date': DateTime(2026, 5, 27, 9).toIso8601String()},
+      createdAt: DateTime(2026, 5, 27, 9),
+    );
+    final taskEvent = PairEvent(
+      eventId: 'e-task',
+      pairId: 'pair-1',
+      deviceId: 'device-a',
+      type: EventType.completeTask,
+      payload: {
+        'taskTitle': '一起做晚饭',
+        'completedAt': DateTime(2026, 5, 27, 20).toIso8601String(),
+      },
+      createdAt: DateTime(2026, 5, 27, 20),
+    );
+
+    expect(PairRepository.timelineEntryFromEvent(checkinEvent), isNull);
+    expect(PairRepository.timelineEntryFromEvent(taskEvent), isNull);
+  });
 }

@@ -101,6 +101,8 @@ third_party/              固定构建依赖的 vendored 组件
 android/                  Android 宿主工程
 ```
 
+目录与命名规范见 [`docs/engineering/PROJECT_STRUCTURE.md`](docs/engineering/PROJECT_STRUCTURE.md)。
+
 ## 快速开始
 
 ### 环境要求

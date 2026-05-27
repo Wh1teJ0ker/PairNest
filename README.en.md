@@ -72,6 +72,8 @@ third_party/              vendored build-critical dependencies
 android/                  Android host project
 ```
 
+Project structure and naming guidance: [`docs/engineering/PROJECT_STRUCTURE.md`](docs/engineering/PROJECT_STRUCTURE.md).
+
 ## Getting Started
 
 ### Requirements

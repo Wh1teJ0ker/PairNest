@@ -4,14 +4,17 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../app/projection_refresh.dart';
 import '../../app/providers.dart';
 import '../../core/permissions.dart';
-import '../../domain/models.dart';
 import '../../widgets/app_feedback.dart';
-import '../../widgets/pressable_scale.dart';
 import '../../widgets/section_card.dart';
 import 'sync_session.dart';
 import 'sync_models.dart';
+import 'widgets/discovered_endpoints_list.dart';
+import 'widgets/pairing_status_card.dart';
+import 'widgets/sync_action_controls.dart';
+import 'widgets/sync_status_summary.dart';
 
 class SyncPanel extends ConsumerStatefulWidget {
   const SyncPanel({super.key});
@@ -35,9 +38,9 @@ class _SyncPanelState extends ConsumerState<SyncPanel> {
   final Map<int, String> _pendingFileEventMap = <int, String>{};
   final Map<int, String> _pendingFileUri = <int, String>{};
   DateTime? _lastSyncAt;
-  int _lastMergedEvents = 0;
-  int _lastMergedFiles = 0;
-  int _lastDuplicateEvents = 0;
+  int _lastSyncInsertedEvents = 0;
+  int _lastSyncMergedFiles = 0;
+  int _lastSyncDuplicateEvents = 0;
   int _crossDeviceNoteDays = 0;
   bool _connecting = false;
   bool _syncInFlight = false;
@@ -68,178 +71,46 @@ class _SyncPanelState extends ConsumerState<SyncPanel> {
             ],
           ),
           const SizedBox(height: 8),
-          Text('状态: $_status'),
+          SyncStatusSummary(
+            status: _status,
+            autoModeEnabled: _autoModeEnabled,
+            autoSyncFailureCount: _autoSyncFailureCount,
+            lastAutoSyncError: _lastAutoSyncError,
+            lastSyncAt: _lastSyncAt,
+            lastSyncInsertedEvents: _lastSyncInsertedEvents,
+            lastSyncDuplicateEvents: _lastSyncDuplicateEvents,
+            lastSyncMergedFiles: _lastSyncMergedFiles,
+            crossDeviceNoteDays: _crossDeviceNoteDays,
+          ),
           if (pairingStatus != null)
             Padding(
               padding: const EdgeInsets.only(top: 10),
-              child: _pairingStatusBlock(pairingStatus),
-            ),
-          if (_autoModeEnabled)
-            Padding(
-              padding: const EdgeInsets.only(top: 6),
-              child: Text(
-                _autoSyncFailureCount == 0
-                    ? '自动模式运行中：靠近后会自动发现并同步'
-                    : '自动模式异常 $_autoSyncFailureCount 次：${_lastAutoSyncError ?? '未知原因'}',
-                style: TextStyle(
-                  color: _autoSyncFailureCount == 0
-                      ? Colors.black54
-                      : const Color(0xFF9E3D3D),
-                  fontSize: 12,
-                ),
-              ),
-            ),
-          if (_lastSyncAt != null)
-            Padding(
-              padding: const EdgeInsets.only(top: 6),
-              child: Text(
-                '最近同步: ${_lastSyncAt!.hour.toString().padLeft(2, '0')}:${_lastSyncAt!.minute.toString().padLeft(2, '0')}:${_lastSyncAt!.second.toString().padLeft(2, '0')} · 新增事件 $_lastMergedEvents / 重复 $_lastDuplicateEvents / 文件 $_lastMergedFiles',
-                style: const TextStyle(color: Colors.black54, fontSize: 12),
-              ),
-            ),
-          if (_crossDeviceNoteDays > 0)
-            Padding(
-              padding: const EdgeInsets.only(top: 4),
-              child: Text(
-                '双端同日共同记录天数: $_crossDeviceNoteDays',
-                style: const TextStyle(color: Colors.black54, fontSize: 12),
-              ),
+              child: PairingStatusCard(status: pairingStatus),
             ),
           const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              ElevatedButton(
-                onPressed: _autoModeEnabled ? null : _enableAutoMode,
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.auto_mode_rounded, size: 16),
-                    SizedBox(width: 6),
-                    Text('一键自动同步'),
-                  ],
-                ),
-              ),
-              OutlinedButton(
-                onPressed: _autoModeEnabled ? _disableAutoMode : null,
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.cancel_schedule_send_rounded, size: 16),
-                    SizedBox(width: 6),
-                    Text('停止自动模式'),
-                  ],
-                ),
-              ),
-              ElevatedButton(
-                onPressed: _discovering ? null : _startDiscovery,
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.radar_rounded, size: 16),
-                    SizedBox(width: 6),
-                    Text('发现设备'),
-                  ],
-                ),
-              ),
-              OutlinedButton(
-                onPressed: _discovering ? _stopDiscovery : null,
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.pause_circle_outline_rounded, size: 16),
-                    SizedBox(width: 6),
-                    Text('停止发现'),
-                  ],
-                ),
-              ),
-              ElevatedButton(
-                onPressed: _advertising ? null : _startAdvertising,
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.wifi_tethering_rounded, size: 16),
-                    SizedBox(width: 6),
-                    Text('开启可发现'),
-                  ],
-                ),
-              ),
-              OutlinedButton(
-                onPressed: _advertising ? _stopAdvertising : null,
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.portable_wifi_off_rounded, size: 16),
-                    SizedBox(width: 6),
-                    Text('停止可发现'),
-                  ],
-                ),
-              ),
-              OutlinedButton(
-                onPressed: () => _syncNow(showSuccessToast: true),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.sync_rounded, size: 16),
-                    SizedBox(width: 6),
-                    Text('同步缺失事件'),
-                  ],
-                ),
-              ),
-              if (_connecting) const SizedBox(width: 8),
-              if (_connecting)
-                const SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-            ],
+          SyncActionControls(
+            autoModeEnabled: _autoModeEnabled,
+            discovering: _discovering,
+            advertising: _advertising,
+            connecting: _connecting,
+            syncInFlight: _syncInFlight,
+            onEnableAutoMode: _enableAutoMode,
+            onDisableAutoMode: _disableAutoMode,
+            onStartDiscovery: _startDiscovery,
+            onStopDiscovery: _stopDiscovery,
+            onStartAdvertising: _startAdvertising,
+            onStopAdvertising: _stopAdvertising,
+            onSyncNow: () => _syncNow(showSuccessToast: true),
           ),
-          if (_endpoints.isNotEmpty) ...[
-            const SizedBox(height: 10),
-            const Row(
-              children: [
-                Icon(Icons.devices_rounded, size: 16),
-                SizedBox(width: 6),
-                Text('发现设备:'),
-              ],
-            ),
-            ..._endpoints.map(
-              (it) => Padding(
-                padding: const EdgeInsets.only(bottom: 6),
-                child: PressableScale(
-                  onTap: () {
-                    setState(() {
-                      _selectedEndpointId = it
-                          .split('(')
-                          .last
-                          .replaceAll(')', '');
-                    });
-                  },
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      color:
-                          _selectedEndpointId != null &&
-                              it.contains(_selectedEndpointId!)
-                          ? const Color(0xFFEAF3FB)
-                          : const Color(0xFFF8FAFD),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: const Color(0xFFD8E6F3)),
-                    ),
-                    child: Text(
-                      '• $it${_selectedEndpointId != null && it.contains(_selectedEndpointId!) ? '（已选择）' : ''}',
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
+          DiscoveredEndpointsList(
+            endpoints: _endpoints,
+            selectedEndpointId: _selectedEndpointId,
+            onSelect: (endpointId) {
+              setState(() {
+                _selectedEndpointId = endpointId;
+              });
+            },
+          ),
         ],
       ),
     );
@@ -268,6 +139,9 @@ class _SyncPanelState extends ConsumerState<SyncPanel> {
   }
 
   Future<void> _startDiscoveryInternal({required bool showToast}) async {
+    if (_discovering) {
+      return;
+    }
     final granted = await Permissions.ensureNearby();
     if (!granted) {
       if (!mounted) {
@@ -306,7 +180,9 @@ class _SyncPanelState extends ConsumerState<SyncPanel> {
                 _status = '发现 ${_endpoints.length} 台设备';
                 _selectedEndpointId ??= endpointId;
               });
-              _scheduleAutoSync();
+              if (_autoModeEnabled) {
+                _scheduleAutoSync();
+              }
             },
             onLost: (endpointId) {
               if (!mounted) {
@@ -317,7 +193,9 @@ class _SyncPanelState extends ConsumerState<SyncPanel> {
                 if (_selectedEndpointId == endpointId) {
                   _selectedEndpointId = _endpoints.isEmpty
                       ? null
-                      : _endpointIdFromDisplay(_endpoints.first);
+                      : DiscoveredEndpointsList.endpointIdFromDisplay(
+                          _endpoints.first,
+                        );
                 }
                 _status = _endpoints.isEmpty
                     ? '附近设备已离开'
@@ -340,6 +218,9 @@ class _SyncPanelState extends ConsumerState<SyncPanel> {
   }
 
   Future<void> _startAdvertisingInternal({required bool showToast}) async {
+    if (_advertising) {
+      return;
+    }
     final granted = await Permissions.ensureNearby();
     if (!granted) {
       if (!mounted) {
@@ -379,7 +260,9 @@ class _SyncPanelState extends ConsumerState<SyncPanel> {
             setState(() {
               _status = '已连接 $endpointId';
             });
-            _scheduleAutoSync();
+            if (_autoModeEnabled) {
+              _scheduleAutoSync();
+            }
           },
           onDisconnected: (endpointId) {
             if (!mounted) {
@@ -437,9 +320,20 @@ class _SyncPanelState extends ConsumerState<SyncPanel> {
       _status = '正在启动自动同步模式...';
     });
     _ensureAutoTimer();
-    await _startAdvertisingInternal(showToast: false);
-    await _startDiscoveryInternal(showToast: false);
+    final advertisingStarted = await _tryStartAdvertisingForAutoMode();
+    final discoveryStarted = await _tryStartDiscoveryForAutoMode();
     if (!mounted) {
+      return;
+    }
+    if (!advertisingStarted && !discoveryStarted) {
+      setState(() {
+        _autoModeEnabled = false;
+        _status = '自动同步模式启动失败';
+        _lastAutoSyncError = '广播和发现都未启动';
+      });
+      _autoSyncTimer?.cancel();
+      _autoSyncTimer = null;
+      AppFeedback.error(context, '自动同步模式启动失败，请检查权限或 Nearby 服务');
       return;
     }
     setState(() {
@@ -563,11 +457,7 @@ class _SyncPanelState extends ConsumerState<SyncPanel> {
         }
       }
       _trackAutoSyncSuccess();
-      ref.invalidate(timelineProvider);
-      ref.invalidate(growthProvider);
-      ref.invalidate(anniversaryProvider);
-      ref.invalidate(todayStatusProvider);
-      ref.invalidate(pairingStatusProvider);
+      _invalidateProjectionProviders();
     } finally {
       _syncInFlight = false;
       if (mounted) {
@@ -668,15 +558,13 @@ class _SyncPanelState extends ConsumerState<SyncPanel> {
             ? '接收 ${events.length} 条，已合并并过滤跨空间事件 $mismatch 条'
             : '接收并合并 ${events.length} 条事件';
         _lastSyncAt = DateTime.now();
-        _lastMergedEvents += report.insertedEvents;
-        _lastDuplicateEvents += report.duplicateEvents;
+        _lastSyncInsertedEvents = report.insertedEvents;
+        _lastSyncDuplicateEvents = report.duplicateEvents;
+        _lastSyncMergedFiles = 0;
         _crossDeviceNoteDays = report.crossDeviceNoteDays;
       });
-      ref.invalidate(timelineProvider);
-      ref.invalidate(growthProvider);
-      ref.invalidate(anniversaryProvider);
-      ref.invalidate(todayStatusProvider);
-      ref.invalidate(pairingStatusProvider);
+      _trackAutoSyncSuccess();
+      _invalidateProjectionProviders();
       await _maybePushBackLocalEvents(
         endpointId: endpointId,
         session: session,
@@ -703,15 +591,13 @@ class _SyncPanelState extends ConsumerState<SyncPanel> {
         _status =
             '双向收敛：新增 ${report.insertedEvents} / 重复 ${report.duplicateEvents}';
         _lastSyncAt = DateTime.now();
-        _lastMergedEvents += report.insertedEvents;
-        _lastDuplicateEvents += report.duplicateEvents;
+        _lastSyncInsertedEvents = report.insertedEvents;
+        _lastSyncDuplicateEvents = report.duplicateEvents;
+        _lastSyncMergedFiles = 0;
         _crossDeviceNoteDays = report.crossDeviceNoteDays;
       });
-      ref.invalidate(timelineProvider);
-      ref.invalidate(growthProvider);
-      ref.invalidate(anniversaryProvider);
-      ref.invalidate(todayStatusProvider);
-      ref.invalidate(pairingStatusProvider);
+      _trackAutoSyncSuccess();
+      _invalidateProjectionProviders();
     }
   }
 
@@ -770,6 +656,9 @@ class _SyncPanelState extends ConsumerState<SyncPanel> {
     await ref
         .read(pairRepositoryProvider)
         .updateEventImagePath(eventId: imageEventId, imagePath: moved);
+    await ref
+        .read(pairRepositoryProvider)
+        .updateLinkedImagePath(imageEventId: imageEventId, imagePath: moved);
 
     _pendingFileMeta.remove(payloadId);
     _pendingFileUri.remove(payloadId);
@@ -781,13 +670,20 @@ class _SyncPanelState extends ConsumerState<SyncPanel> {
     setState(() {
       _status = '图片同步完成: $filename';
       _lastSyncAt = DateTime.now();
-      _lastMergedFiles += 1;
+      _lastSyncMergedFiles += 1;
     });
-    ref.invalidate(timelineProvider);
-    ref.invalidate(pairingStatusProvider);
+    _trackAutoSyncSuccess();
+    ref.invalidateAfterInboundSyncImage();
+  }
+
+  void _invalidateProjectionProviders() {
+    ref.invalidateAllPairScopedProjections();
   }
 
   void _scheduleAutoSync() {
+    if (!_autoModeEnabled) {
+      return;
+    }
     final endpointId = _selectedEndpointId;
     if (endpointId == null || endpointId.isEmpty) {
       return;
@@ -802,6 +698,18 @@ class _SyncPanelState extends ConsumerState<SyncPanel> {
     }
     _lastAutoSyncAttemptAt = now;
     unawaited(_syncNow(showSuccessToast: false));
+  }
+
+  Future<bool> _tryStartAdvertisingForAutoMode() async {
+    final before = _advertising;
+    await _startAdvertisingInternal(showToast: false);
+    return _advertising || before;
+  }
+
+  Future<bool> _tryStartDiscoveryForAutoMode() async {
+    final before = _discovering;
+    await _startDiscoveryInternal(showToast: false);
+    return _discovering || before;
   }
 
   void _ensureAutoTimer() {
@@ -839,73 +747,5 @@ class _SyncPanelState extends ConsumerState<SyncPanel> {
       _autoSyncFailureCount = 0;
       _lastAutoSyncError = null;
     });
-  }
-
-  String? _endpointIdFromDisplay(String displayText) {
-    final start = displayText.lastIndexOf('(');
-    final end = displayText.lastIndexOf(')');
-    if (start < 0 || end <= start) {
-      return null;
-    }
-    return displayText.substring(start + 1, end);
-  }
-
-  Widget _pairingStatusBlock(PairingStatus status) {
-    final paired = status.isPairedAcrossDevices;
-    final lastRemoteText = status.lastRemoteBoundAt == null
-        ? '尚未收到对端绑定事件'
-        : '最近对端绑定: ${status.lastRemoteBoundAt!.month.toString().padLeft(2, '0')}-${status.lastRemoteBoundAt!.day.toString().padLeft(2, '0')} ${status.lastRemoteBoundAt!.hour.toString().padLeft(2, '0')}:${status.lastRemoteBoundAt!.minute.toString().padLeft(2, '0')}';
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF7FBFE),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFD7E7F5)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                paired ? Icons.verified_user_rounded : Icons.hub_rounded,
-                size: 18,
-                color: paired
-                    ? const Color(0xFF266A48)
-                    : const Color(0xFF406C97),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  paired ? '双端配对已完成' : '当前仅完成单端绑定',
-                  style: const TextStyle(fontWeight: FontWeight.w700),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text('情侣空间: ${status.shortPairId}'),
-          Text('本机昵称: ${status.meName}'),
-          Text(
-            '匹配对象: ${status.remoteParticipantNames.isEmpty ? status.expectedPartnerName : status.remoteParticipantNames.join(" / ")}',
-          ),
-          Text('已同步设备数: ${status.syncedDeviceCount}'),
-          Text(
-            lastRemoteText,
-            style: const TextStyle(fontSize: 12, color: Colors.black54),
-          ),
-          if (!paired)
-            const Padding(
-              padding: EdgeInsets.only(top: 6),
-              child: Text(
-                '还需要让另一台设备扫码加入，并完成至少一次 Nearby 同步，状态才会切换为双端已匹配。',
-                style: TextStyle(fontSize: 12, color: Color(0xFF7C5A33)),
-              ),
-            ),
-        ],
-      ),
-    );
   }
 }

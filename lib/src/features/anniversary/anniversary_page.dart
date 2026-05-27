@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../app/projection_refresh.dart';
 import '../../app/providers.dart';
 import '../../domain/models.dart';
 import '../../widgets/app_feedback.dart';
 import '../../widgets/atmosphere_background.dart';
 import '../../widgets/empty_state_card.dart';
-import '../../widgets/pressable_scale.dart';
-import '../../widgets/section_card.dart';
 import '../../widgets/staggered_column.dart';
+import 'widgets/anniversary_editor_card.dart';
+import 'widgets/anniversary_hero_card.dart';
+import 'widgets/anniversary_item_card.dart';
 
 class AnniversaryPage extends ConsumerStatefulWidget {
   const AnniversaryPage({super.key});
@@ -21,6 +23,7 @@ class _AnniversaryPageState extends ConsumerState<AnniversaryPage> {
   final _titleController = TextEditingController();
   final _kindController = TextEditingController(text: '纪念日');
   DateTime _date = DateTime.now();
+  bool _submitting = false;
 
   @override
   void dispose() {
@@ -47,62 +50,21 @@ class _AnniversaryPageState extends ConsumerState<AnniversaryPage> {
                 children: [
                   StaggeredColumn(
                     children: [
-                      SectionCard(
-                        accent: const Color(0xFFF1D8B5),
-                        child: Column(
-                          children: [
-                            TextField(
-                              controller: _titleController,
-                              decoration: const InputDecoration(
-                                labelText: '标题',
-                                prefixIcon: Icon(Icons.emoji_events_rounded),
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            TextField(
-                              controller: _kindController,
-                              decoration: const InputDecoration(
-                                labelText: '类型',
-                                prefixIcon: Icon(Icons.category_rounded),
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                const Icon(Icons.event_rounded, size: 18),
-                                const SizedBox(width: 6),
-                                Text(
-                                  '日期: ${_date.year}-${_date.month}-${_date.day}',
-                                ),
-                                const Spacer(),
-                                TextButton.icon(
-                                  onPressed: () async {
-                                    final picked = await showDatePicker(
-                                      context: context,
-                                      firstDate: DateTime(1990),
-                                      lastDate: DateTime(2100),
-                                      initialDate: _date,
-                                    );
-                                    if (picked != null) {
-                                      setState(() => _date = picked);
-                                    }
-                                  },
-                                  icon: const Icon(
-                                    Icons.edit_calendar_rounded,
-                                    size: 18,
-                                  ),
-                                  label: const Text('选择'),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            ElevatedButton.icon(
-                              onPressed: () => _save(profile),
-                              icon: const Icon(Icons.add_circle_rounded),
-                              label: const Text('添加纪念日'),
-                            ),
-                          ],
+                      list.when(
+                        data: (items) => AnniversaryHeroCard(
+                          items: items,
+                          profileLoveDays: profile.loveDays,
                         ),
+                        loading: () => const SizedBox.shrink(),
+                        error: (_, _) => const SizedBox.shrink(),
+                      ),
+                      AnniversaryEditorCard(
+                        titleController: _titleController,
+                        kindController: _kindController,
+                        selectedDate: _date,
+                        submitting: _submitting,
+                        onPickDate: _pickDate,
+                        onSave: () => _save(profile),
                       ),
                       list.when(
                         data: (items) => Column(
@@ -111,112 +73,13 @@ class _AnniversaryPageState extends ConsumerState<AnniversaryPage> {
                                   EmptyStateCard(
                                     icon: Icons.celebration_rounded,
                                     title: '还没有纪念日',
-                                    subtitle: '添加一个值得纪念的日期，后续会自动提醒。',
+                                    subtitle: '先录入一个重要日期，主页和时间轴会同步显示。',
                                     accent: Color(0xFFF1D8B5),
                                   ),
                                 ]
                               : items
                                     .map(
-                                      (item) => Padding(
-                                        padding: const EdgeInsets.only(
-                                          bottom: 10,
-                                        ),
-                                        child: PressableScale(
-                                          child: SectionCard(
-                                            accent: item.shouldRemind
-                                                ? const Color(0xFFF8D1C7)
-                                                : const Color(0xFFF0E6DD),
-                                            child: Row(
-                                              children: [
-                                                Icon(
-                                                  item.shouldRemind
-                                                      ? Icons
-                                                            .notifications_active_rounded
-                                                      : Icons.favorite_outline,
-                                                ),
-                                                const SizedBox(width: 10),
-                                                Expanded(
-                                                  child: Column(
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .start,
-                                                    children: [
-                                                      Text(
-                                                        item.title,
-                                                        style: const TextStyle(
-                                                          fontWeight:
-                                                              FontWeight.w600,
-                                                        ),
-                                                      ),
-                                                      Text(
-                                                        '${item.kind} · ${item.date.year}.${item.date.month}.${item.date.day}',
-                                                      ),
-                                                      if (item.shouldRemind)
-                                                        const Padding(
-                                                          padding:
-                                                              EdgeInsets.only(
-                                                                top: 4,
-                                                              ),
-                                                          child: Row(
-                                                            children: [
-                                                              Icon(
-                                                                Icons
-                                                                    .alarm_rounded,
-                                                                size: 14,
-                                                                color: Color(
-                                                                  0xFFB33A2A,
-                                                                ),
-                                                              ),
-                                                              SizedBox(
-                                                                width: 4,
-                                                              ),
-                                                              Text(
-                                                                '近期提醒（7天内）',
-                                                                style: TextStyle(
-                                                                  fontSize: 12,
-                                                                  color: Color(
-                                                                    0xFFB33A2A,
-                                                                  ),
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ),
-                                                    ],
-                                                  ),
-                                                ),
-                                                Container(
-                                                  padding:
-                                                      const EdgeInsets.symmetric(
-                                                        horizontal: 10,
-                                                        vertical: 6,
-                                                      ),
-                                                  decoration: BoxDecoration(
-                                                    color: item.shouldRemind
-                                                        ? const Color(
-                                                            0xFFFEE7E2,
-                                                          )
-                                                        : const Color(
-                                                            0xFFF5EFE8,
-                                                          ),
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          12,
-                                                        ),
-                                                  ),
-                                                  child: Text(
-                                                    '倒计时 ${item.daysLeft} 天',
-                                                    style: const TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.w600,
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                      ),
+                                      (item) => AnniversaryItemCard(item: item),
                                     )
                                     .toList(),
                         ),
@@ -232,8 +95,20 @@ class _AnniversaryPageState extends ConsumerState<AnniversaryPage> {
     );
   }
 
+  Future<void> _pickDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      firstDate: DateTime(1990),
+      lastDate: DateTime(2100),
+      initialDate: _date,
+    );
+    if (picked != null && mounted) {
+      setState(() => _date = picked);
+    }
+  }
+
   Future<void> _save(CoupleProfile? profile) async {
-    if (profile == null) {
+    if (profile == null || _submitting) {
       return;
     }
     final title = _titleController.text.trim();
@@ -242,22 +117,32 @@ class _AnniversaryPageState extends ConsumerState<AnniversaryPage> {
       return;
     }
 
-    await ref
-        .read(pairRepositoryProvider)
-        .addAnniversary(
-          profile: profile,
-          title: title,
-          date: _date,
-          kind: _kindController.text.trim().isEmpty
-              ? '纪念日'
-              : _kindController.text.trim(),
-        );
-    if (!mounted) {
-      return;
-    }
+    final kind = _kindController.text.trim().isEmpty
+        ? '纪念日'
+        : _kindController.text.trim();
 
-    _titleController.clear();
-    ref.invalidate(anniversaryProvider);
-    AppFeedback.success(context, '纪念日已添加');
+    setState(() => _submitting = true);
+    try {
+      await ref
+          .read(pairRepositoryProvider)
+          .addAnniversary(
+            profile: profile,
+            title: title,
+            date: _date,
+            kind: kind,
+          );
+      if (!mounted) {
+        return;
+      }
+
+      _titleController.clear();
+      _kindController.text = '纪念日';
+      ref.invalidateAfterAnniversary();
+      AppFeedback.success(context, '纪念日已添加');
+    } finally {
+      if (mounted) {
+        setState(() => _submitting = false);
+      }
+    }
   }
 }

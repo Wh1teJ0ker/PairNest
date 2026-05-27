@@ -237,6 +237,34 @@ class GrowthTaskRecord {
   final String deviceId;
 }
 
+class PartnerScoreRecord {
+  const PartnerScoreRecord({
+    required this.id,
+    required this.title,
+    required this.createdAt,
+    required this.intimacyDelta,
+    required this.activityDelta,
+    required this.chemistryDelta,
+    this.detail,
+    this.imagePath,
+  });
+
+  final String id;
+  final String title;
+  final String? detail;
+  final String? imagePath;
+  final DateTime createdAt;
+  final int intimacyDelta;
+  final int activityDelta;
+  final int chemistryDelta;
+
+  int get totalDelta => intimacyDelta + activityDelta + chemistryDelta;
+
+  bool get isPositive => totalDelta >= 0;
+
+  bool get hasImage => (imagePath ?? '').isNotEmpty;
+}
+
 class AnniversaryItem {
   const AnniversaryItem({
     required this.id,

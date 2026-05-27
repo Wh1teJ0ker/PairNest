@@ -12,6 +12,13 @@ import '../domain/models.dart';
 import '../domain/sync_port.dart';
 import 'local_db.dart';
 
+class DuplicateDailyCheckinException implements Exception {
+  const DuplicateDailyCheckinException();
+
+  @override
+  String toString() => '今天已经签到过了';
+}
+
 class PairRepository implements SyncRepositoryPort {
   PairRepository({LocalDb? localDb}) : _localDb = localDb ?? LocalDb.instance;
 
@@ -189,20 +196,95 @@ class PairRepository implements SyncRepositoryPort {
     }
   }
 
-  Future<void> checkinTogether(CoupleProfile profile) async {
+  Future<void> addPartnerScoreRecord({
+    required CoupleProfile profile,
+    required String title,
+    required int intimacyDelta,
+    required int activityDelta,
+    required int chemistryDelta,
+    String? detail,
+    String? imagePath,
+  }) async {
+    String? localImagePath = imagePath;
+    final scoreEventId = _uuid.v4();
+    final createdAt = DateTime.now();
+
+    if (localImagePath != null && localImagePath.isNotEmpty) {
+      localImagePath = await _persistImageToLocalStorage(localImagePath);
+    }
+
     await appendEvent(
       PairEvent(
+        eventId: scoreEventId,
+        pairId: profile.pairId,
+        deviceId: profile.myDeviceId,
+        type: EventType.addScore,
+        payload: {
+          'title': title.trim(),
+          'detail': detail?.trim(),
+          'intimacy': intimacyDelta,
+          'activity': activityDelta,
+          'chemistry': chemistryDelta,
+          'reason': 'partner_feedback',
+          'imagePath': localImagePath,
+        },
+        createdAt: createdAt,
+      ),
+    );
+
+    if (localImagePath != null && localImagePath.isNotEmpty) {
+      await appendEvent(
+        PairEvent(
+          eventId: _uuid.v4(),
+          pairId: profile.pairId,
+          deviceId: profile.myDeviceId,
+          type: EventType.addImage,
+          payload: {
+            'imagePath': localImagePath,
+            'source': 'partner_feedback',
+            'relatedEventId': scoreEventId,
+          },
+          createdAt: createdAt,
+        ),
+      );
+    }
+  }
+
+  Future<void> checkinTogether(CoupleProfile profile) async {
+    final database = await _localDb.db;
+    final now = DateTime.now();
+    final dayStart = DateTime(now.year, now.month, now.day);
+    final dayEnd = dayStart.add(const Duration(days: 1));
+
+    await database.transaction((txn) async {
+      final existing = await txn.query(
+        'events',
+        columns: ['event_id'],
+        where:
+            'pair_id = ? AND event_type = ? AND created_at >= ? AND created_at < ?',
+        whereArgs: [
+          profile.pairId,
+          EventType.dailyCheckin.value,
+          dayStart.toIso8601String(),
+          dayEnd.toIso8601String(),
+        ],
+        limit: 1,
+      );
+
+      if (existing.isNotEmpty) {
+        throw const DuplicateDailyCheckinException();
+      }
+
+      final checkinEvent = PairEvent(
         eventId: _uuid.v4(),
         pairId: profile.pairId,
         deviceId: profile.myDeviceId,
         type: EventType.dailyCheckin,
-        payload: {'date': DateTime.now().toIso8601String()},
-        createdAt: DateTime.now(),
-      ),
-    );
+        payload: {'date': now.toIso8601String()},
+        createdAt: now,
+      );
 
-    await appendEvent(
-      PairEvent(
+      final scoreEvent = PairEvent(
         eventId: _uuid.v4(),
         pairId: profile.pairId,
         deviceId: profile.myDeviceId,
@@ -213,9 +295,20 @@ class PairRepository implements SyncRepositoryPort {
           'chemistry': 2,
           'reason': 'checkin',
         },
-        createdAt: DateTime.now(),
-      ),
-    );
+        createdAt: now,
+      );
+
+      await txn.insert(
+        'events',
+        checkinEvent.toDb(),
+        conflictAlgorithm: ConflictAlgorithm.ignore,
+      );
+      await txn.insert(
+        'events',
+        scoreEvent.toDb(),
+        conflictAlgorithm: ConflictAlgorithm.ignore,
+      );
+    });
   }
 
   Future<void> completeTaskTogether({
@@ -333,6 +426,28 @@ class PairRepository implements SyncRepositoryPort {
       );
     }
 
+    if (event.type == EventType.addScore &&
+        event.payload['reason'] == 'partner_feedback') {
+      final title = (event.payload['title'] as String?)?.trim();
+      if (title == null || title.isEmpty) {
+        return null;
+      }
+      final detail = (event.payload['detail'] as String?)?.trim();
+      final tags = <String>['奖惩记录'];
+      final total =
+          ((event.payload['intimacy'] as num?)?.toInt() ?? 0) +
+          ((event.payload['activity'] as num?)?.toInt() ?? 0) +
+          ((event.payload['chemistry'] as num?)?.toInt() ?? 0);
+      tags.add(total >= 0 ? '加分' : '减分');
+      return TimelineEntry(
+        id: event.eventId,
+        date: event.createdAt,
+        text: detail == null || detail.isEmpty ? title : '$title\n$detail',
+        imagePath: event.payload['imagePath'] as String?,
+        tags: tags,
+      );
+    }
+
     return null;
   }
 
@@ -379,6 +494,27 @@ class PairRepository implements SyncRepositoryPort {
     return records.take(limit).toList();
   }
 
+  Future<List<PartnerScoreRecord>> recentPartnerScoreRecords(
+    CoupleProfile profile, {
+    int limit = 10,
+  }) async {
+    final events = await eventsByPair(profile.pairId);
+    final records = events
+        .where(
+          (event) =>
+              event.type == EventType.addScore &&
+              event.payload['reason'] == 'partner_feedback',
+        )
+        .map(partnerScoreRecordFromEvent)
+        .whereType<PartnerScoreRecord>()
+        .toList();
+    records.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    if (records.length <= limit) {
+      return records;
+    }
+    return records.take(limit).toList();
+  }
+
   @visibleForTesting
   static GrowthTaskRecord? growthTaskRecordFromEvent(PairEvent event) {
     if (event.type != EventType.completeTask) {
@@ -395,6 +531,28 @@ class PairRepository implements SyncRepositoryPort {
       title: title,
       completedAt: completedAt ?? event.createdAt,
       deviceId: event.deviceId,
+    );
+  }
+
+  @visibleForTesting
+  static PartnerScoreRecord? partnerScoreRecordFromEvent(PairEvent event) {
+    if (event.type != EventType.addScore ||
+        event.payload['reason'] != 'partner_feedback') {
+      return null;
+    }
+    final title = (event.payload['title'] as String?)?.trim();
+    if (title == null || title.isEmpty) {
+      return null;
+    }
+    return PartnerScoreRecord(
+      id: event.eventId,
+      title: title,
+      detail: (event.payload['detail'] as String?)?.trim(),
+      imagePath: event.payload['imagePath'] as String?,
+      createdAt: event.createdAt,
+      intimacyDelta: (event.payload['intimacy'] as num?)?.toInt() ?? 0,
+      activityDelta: (event.payload['activity'] as num?)?.toInt() ?? 0,
+      chemistryDelta: (event.payload['chemistry'] as num?)?.toInt() ?? 0,
     );
   }
 
@@ -567,6 +725,31 @@ class PairRepository implements SyncRepositoryPort {
       where: 'event_id = ?',
       whereArgs: [eventId],
     );
+  }
+
+  Future<void> updateLinkedImagePath({
+    required String imageEventId,
+    required String imagePath,
+  }) async {
+    final database = await _localDb.db;
+    final rows = await database.query(
+      'events',
+      columns: ['payload'],
+      where: 'event_id = ?',
+      whereArgs: [imageEventId],
+      limit: 1,
+    );
+    if (rows.isEmpty) {
+      return;
+    }
+
+    final payload =
+        jsonDecode(rows.first['payload'] as String) as Map<String, dynamic>;
+    final relatedEventId = payload['relatedEventId'] as String?;
+    if (relatedEventId == null || relatedEventId.isEmpty) {
+      return;
+    }
+    await updateEventImagePath(eventId: relatedEventId, imagePath: imagePath);
   }
 
   @override

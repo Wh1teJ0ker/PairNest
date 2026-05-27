@@ -22,31 +22,32 @@ class EmptyStateCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return SectionCard(
-      accent: accent ?? const Color(0xFFE8DDD6),
+      accent: accent ?? const Color(0xFFE2D6CA),
+      tone: SectionCardTone.muted,
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            width: 52,
-            height: 52,
+            width: 56,
+            height: 56,
             decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: const Color(0xFFF5ECE5),
+              color: scheme.surface,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: accent ?? scheme.outline),
             ),
-            child: Icon(icon, size: 26, color: const Color(0xFF9A7665)),
+            child: Icon(icon, size: 24, color: const Color(0xFF86674D)),
           ),
           const SizedBox(height: 12),
           Text(
             title,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-            textAlign: TextAlign.center,
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: 6),
-          Text(
-            subtitle,
-            style: const TextStyle(color: Colors.black54),
-            textAlign: TextAlign.center,
-          ),
+          Text(subtitle, style: Theme.of(context).textTheme.bodyMedium),
           if (actionLabel != null && onAction != null) ...[
             const SizedBox(height: 12),
             OutlinedButton.icon(
