@@ -1,11 +1,11 @@
 pluginManagement {
     repositories {
-        maven(url = "https://maven.aliyun.com/repository/gradle-plugin")
-        maven(url = "https://maven.aliyun.com/repository/google")
-        maven(url = "https://maven.aliyun.com/repository/public")
         google()
         mavenCentral()
         gradlePluginPortal()
+        maven(url = "https://maven.aliyun.com/repository/gradle-plugin")
+        maven(url = "https://maven.aliyun.com/repository/google")
+        maven(url = "https://maven.aliyun.com/repository/public")
     }
 
     val flutterSdkPath =
@@ -22,11 +22,11 @@ pluginManagement {
 
 dependencyResolutionManagement {
     repositories {
+        google()
+        mavenCentral()
         maven(url = "https://maven.aliyun.com/repository/google")
         maven(url = "https://maven.aliyun.com/repository/public")
         maven(url = "https://maven.aliyun.com/repository/gradle-plugin")
-        google()
-        mavenCentral()
     }
 }
 
